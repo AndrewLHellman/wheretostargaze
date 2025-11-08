@@ -1,18 +1,60 @@
-import os
-from typing import Tuple, Optional
 import logging
+from typing import Optional
 from cache import cache_response
+from config import settings
+import rasterio
+from rasterio.transform import rowcol
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
-LIGHT_POLLUTION_DATA = None
+_light_pollution_dataset = None
 
-def initialize_light_pollution_data():
-    global LIGHT_POLLUTION_DATA
-    logger.info("Light pollution service initialized (using simplified model)")
-    return None
+def load_light_pollution_data():
+    global _light_pollution_dataset
 
+    data_path = settings.light_pollution_data_path
+
+    try:
+        import os
+        if not os.path.exists(data_path):
+            logger.warning(f"Light pollution data not found at {data_path}")
+            logger.warning("Using simplified distance-based model")
+            return None
+
+        _light_pollution_dataset = rasterio.open(data_path)
+        logger.info(f"✓ Light pollution data loaded: {data_path}")
+        logger.info(f"  Resolution: {_light_pollution_dataset.width}x{_light_pollution_dataset.height}")
+        return _light_pollution_dataset
+    except Exception as e:
+        logger.error(f"Error loading light pollution data: {e}")
+        logger.warning("Using simplified distance-based model")
+        return None
+
+@cache_response(ttl_seconds=31536000, prefix="light_pollution")
 async def get_light_pollution_score(lat: float, lon: float) -> float:
+    global _light_pollution_dataset
+
+    if _light_pollution_dataset is not None:
+        try:
+            row, col = rowcol(_light_pollution_dataset.transform, lon, lat)
+
+            if 0 <= row < _light_pollution_dataset.height and 0 <= col < _light_pollution_dataset.width:
+                radiance = _light_pollution_dataset.read(1, window=((row, row+1), (col, col+1)))[0, 0]
+
+                if radiance == _light_pollution_dataset.nodata or np.isnan(radiance):
+                    logger.debug(f"NoData at ({lat}, {lon}), using fallback")
+                    return await _get_distance_based_score(lat, lon)
+
+                score = min(1.0, max(0.0, np.log10(radiance + 0.2) / 3.5))
+
+                return float(score)
+        except Exception as e:
+            logger.error(f"Error reading raster at ({lat}, {lon}): {e}")
+
+    return await _get_distance_based_score(lat, lon)
+
+async def _get_distance_based_score(lat: float, lon: float) -> float:
     cities = [
         (38.6270, -90.1994, 1.0),  # St. Louis
         (39.0997, -94.5786, 1.0),  # Kansas City

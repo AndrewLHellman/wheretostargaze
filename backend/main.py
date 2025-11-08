@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from models.schemas import SpotRequest, SpotResponse, LightPollutionPoint, RecommendedSpot
 from services.isochrone import get_search_area, generate_grid_points, polygon_to_geojson
-from services.light_pollution import get_light_pollution_score, get_quality_description
+from services.light_pollution import get_light_pollution_score, get_quality_description, load_light_pollution_data
 from services.places import find_best_stargazing_spots
 from cache import get_cache_stats
 import traceback
@@ -28,6 +28,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Loading light pollution data...")
+    load_light_pollution_data()
 
 @app.post("/api/spots", response_model=SpotResponse)
 async def get_stargazing_spots(request: SpotRequest):
