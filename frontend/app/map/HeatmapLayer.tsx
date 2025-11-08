@@ -15,8 +15,8 @@ export default function HeatmapLayer({ points }: HeatmapProps) {
 
     // @ts-expect-error next-line
     const heat = L.heatLayer(points, {
-      radius: 50,
-      blur: 0,
+      radius: 100,
+      blur: 50,
       max: 5,
       gradient: {
         0.2: 'rgba(0,0,255,1.0)',
@@ -25,6 +25,12 @@ export default function HeatmapLayer({ points }: HeatmapProps) {
         1.0: 'rgba(255,0,0,1.0)',
       },
     }).addTo(map)
+    map.on('zoomend', () => {
+      const zoom = map.getZoom()
+      if (heat) {
+        heat.setOptions({ radius: 20 + zoom * 2 }) // increase radius as you zoom in
+      }
+    })
 
     return () => {
       heat.remove()
