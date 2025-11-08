@@ -1,13 +1,7 @@
 'use client'
 
-<<<<<<< HEAD
-import React from 'react'
-import { MapContainer, TileLayer, Tooltip } from 'react-leaflet'
-=======
 import React, { useState, useEffect } from 'react'
-import { useUserLocation } from '@/lib/useUserLocation'
-import { MapContainer, TileLayer, useMap } from 'react-leaflet'
->>>>>>> 4261d37ddc3bd9aebfeb34218c14887294fec034
+import { MapContainer, TileLayer, Tooltip, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import LucideMarker from './LucideMarker'
 import { FlagTriangleRight } from 'lucide-react'
@@ -35,13 +29,8 @@ export default function MapWithWaypoints({ data }: Props) {
     <div style={{ height: '100%', width: '100%' }}>
       <MapContainer
         style={{ height: '100%', width: '100%' }}
-<<<<<<< HEAD
-        center={[38.9452, -92.3288]}
-        zoom={11}
-=======
         center={userLocation ? [userLocation.lat, userLocation.lng] : [38.9452, -92.3288]}
         zoom={17}
->>>>>>> 4261d37ddc3bd9aebfeb34218c14887294fec034
         attributionControl={false}
       >
         <TileLayer
@@ -49,18 +38,9 @@ export default function MapWithWaypoints({ data }: Props) {
           url='https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
           subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
         />
-<<<<<<< HEAD
-=======
 
-  {/* Recenter map whenever userLocation updates */}
-  {userLocation && <RecenterMap latlng={[userLocation.lat, userLocation.lng]} />}
-
-          {/* User location marker */}
-          {userLocation && (
-            <UserMarker position={[userLocation.lat, userLocation.lng]} />
-          )}
-      </MapContainer>
->>>>>>> 4261d37ddc3bd9aebfeb34218c14887294fec034
+        {/* Recenter map whenever userLocation updates */}
+        {userLocation && <RecenterMap latlng={[userLocation.lat, userLocation.lng]} />}
 
         {/* User location */}
         {userLocation && <UserMarker position={[userLocation.lat, userLocation.lng]} />}
