@@ -2,6 +2,16 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from models.schemas import SpotRequest, SpotResponse, LightPollutionPoint, RecommendedSpot
 from services.isochrone import get_search_area, generate_grid_points, polygon_to_geojson
+from cache import get_cache_stats
+import traceback
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s:     %(name)s - %(message)s'
+)
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="WhereToStargaze API",
@@ -50,6 +60,8 @@ async def get_stargazing_spots(request: SpotRequest):
             search_area=polygon_to_geojson(polygon)
         )
     except Exception as e:
+        print(f"Error: {str(e)}")
+        print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
@@ -59,3 +71,7 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+@app.get("/cache/stats")
+async def cache_stats():
+    return get_cache_stats()
