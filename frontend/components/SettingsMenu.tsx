@@ -86,7 +86,7 @@ export default function SettingsMenu({ sidebar = false }: SettingsMenuProps) {
           <h3 className="font-large mb-2">Map Preferences</h3>
 
           <div className="mb-3">
-            <label className="text-sm block mb-1">Max travel distance ({prefs.units})</label>
+            <label className="text-sm block mb-1">Max Travel Distance ({prefs.units})</label>
             <div className="flex items-center gap-2">
               <input
                 type="range"
@@ -114,13 +114,13 @@ export default function SettingsMenu({ sidebar = false }: SettingsMenuProps) {
           </div>
 
           <div className="mb-3">
-            <div className="text-sm font-medium mb-1">Prioritize layers</div>
+            <div className="text-sm font-medium mb-1">Prioritize Layers</div>
             {(Object.keys(prefs.layers) as LayerKey[]).map((key) => {
               const layer = prefs.layers[key]
               const label = {
-                cloudCoverage: 'Cloud coverage',
-                treeDensity: 'Tree density',
-                lightPollution: 'Light pollution',
+                cloudCoverage: 'Cloud Coverage',
+                treeDensity: 'Tree Density',
+                lightPollution: 'Light Pollution',
                 accessibility: 'Accessibility',
               }[key]
 

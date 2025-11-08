@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useUserLocation } from '@/lib/useUserLocation'
-import { MapContainer, TileLayer, Polyline, Marker, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Polyline, Marker, useMapEvents, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import LucideMarker from './LucideMarker'
 import { Button } from '@radix-ui/themes'
@@ -27,11 +27,21 @@ export default function MapWithWaypoints() {
     })
     return null
   }
+
+  function RecenterMap({ latlng }: { latlng: [number, number] }) {
+    const map = useMap()
+    useEffect(() => {
+      if (!latlng) return
+      // animate to the user's location and keep current zoom
+      map.flyTo(latlng, map.getZoom())
+    }, [latlng && latlng.join(',')])
+    return null
+  }
   return (
     <div style={{ height: '100%', width: '100%' }}>
       <MapContainer
         style={{ height: '100%', width: '100%' }}
-        center={[38.9452, -92.3288]}
+        center={userLocation ? [userLocation.lat, userLocation.lng] : [38.9452, -92.3288]}
         zoom={17}
         attributionControl={false}
       >
@@ -43,6 +53,9 @@ export default function MapWithWaypoints() {
         />
 
         <ClickHandler />
+
+  {/* Recenter map whenever userLocation updates */}
+  {userLocation && <RecenterMap latlng={[userLocation.lat, userLocation.lng]} />}
 
           {/* User location marker */}
           {userLocation && (
