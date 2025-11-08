@@ -18,7 +18,6 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-leaflet": "^5.0.0",
-    "react-leaflet-arrowheads": "^1.1.0",
     "react-leaflet-tracking-marker": "^1.0.16"
   },
   "devDependencies": {
