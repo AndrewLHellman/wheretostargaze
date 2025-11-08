@@ -2,9 +2,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from models.schemas import SpotRequest, SpotResponse, LightPollutionPoint, RecommendedSpot
 from services.isochrone import get_search_area, generate_grid_points, polygon_to_geojson
+from services.light_pollution import get_light_pollution_score, get_quality_description
 from cache import get_cache_stats
 import traceback
 import logging
+import asyncio
 
 logging.basicConfig(
     level=logging.INFO,
@@ -29,6 +31,8 @@ app.add_middleware(
 @app.post("/api/spots", response_model=SpotResponse)
 async def get_stargazing_spots(request: SpotRequest):
     try:
+        logger.info(f"Processing request for lat={request.latitude}, lon={request.longitude}")
+
         polygon = await get_search_area(
             request.latitude,
             request.longitude,
@@ -38,20 +42,31 @@ async def get_stargazing_spots(request: SpotRequest):
 
         grid_points = generate_grid_points(polygon, spacing_miles=2.0)
 
-        heatmap = [
-            LightPollutionPoint(lat=lat, lon=lon, pollution_score=0.5)
-            for lat, lon in grid_points[:50]
+        pollution_tasks = [
+            get_light_pollution_score(lat, lon)
+            for lat, lon in grid_points
         ]
+        pollution_scores = await asyncio.gather(*pollution_tasks)
+
+        heatmap = [
+            LightPollutionPoint(lat=lat, lon=lon, pollution_score=score)
+            for (lat, lon), score in zip(grid_points, pollution_scores)
+        ]
+
+        sorted_points = sorted(zip(grid_points, pollution_scores), key=lambda x: x[1])
+        best_spots = sorted_points[:5]
 
         recommended_spots = [
             RecommendedSpot(
-                name="Test Spot",
-                lat=request.latitude + 0.01,
-                lon=request.longitude + 0.01,
-                pollution_score=0.3,
-                place_type="park",
-                rating=4.5
+                name=f"Dark Sky Location {i+1}",
+                lat=lat,
+                lon=lon,
+                pollution_score=score,
+                place_type="dark_site",
+                rating=None,
+                address=get_quality_description(score)
             )
+            for i, ((lat, lon), score) in enumerate(best_spots)
         ]
 
         return SpotResponse(
