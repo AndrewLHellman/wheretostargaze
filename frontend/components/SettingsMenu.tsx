@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import sampleResponse from '@/app/map/response.json'
 import { SpotResponse } from '@/lib/types'
+import { useUserLocation } from '@/lib/useUserLocation'
 
 type LayerKey = 'cloudCoverage' | 'treeDensity' | 'lightPollution' | 'accessibility'
 type LayerPref = { enabled: boolean; weight: number }
@@ -34,6 +35,9 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
   const [open, setOpen] = useState<boolean>(sidebar)
   const [prefs, setPrefs] = useState<MapPrefs>(DEFAULT_PREFS)
   const [logoLoaded, setLogoLoaded] = useState<boolean>(true)
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const { location: userLocation } = useUserLocation()
 
   useEffect(() => {
     try {
@@ -57,9 +61,34 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
     save(DEFAULT_PREFS)
   }
 
-  function submitSettings() {
-    onResponse(sampleResponse as unknown as SpotResponse)
+  async function submitSettings() {
+    //onResponse(sampleResponse as unknown as SpotResponse)
+
+    setLoading(true)
+    try {
+      const response = await fetch('http://localhost:8000/api/spots', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          latitude: userLocation?.lat,
+          longitude: userLocation?.lng,
+          radius_miles: prefs.travelDistance,
+        }),
+      })
+
+      const data: SpotResponse = await response.json()
+      onResponse(data)
+      
+    } catch (error) {
+      console.error('Failed to fetch spots:', error)
+    } finally {
+      setLoading(false)
+    }
   }
+
+
 
   const btnActive = sidebar ? 'bg-gray-700 text-white' : 'bg-gray-100'
   const btnSecondary = sidebar ? 'bg-gray-800 text-gray-200' : 'bg-gray-100'
