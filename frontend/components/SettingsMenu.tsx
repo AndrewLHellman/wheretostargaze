@@ -156,14 +156,6 @@ export default function SettingsMenu({ sidebar = false }: SettingsMenuProps) {
             >
               Reset
             </button>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setOpen(false)}
-                className={`px-3 py-1 rounded text-sm ${btnSecondary}`}
-              >
-                Close
-              </button>
-            </div>
           </div>
         </div>
       )}
