@@ -28,7 +28,7 @@ export default function MapWithWaypoints() {
     return null
   }
   return (
-    <div style={{ height: '100vh', width: '100%' }}>
+    <div style={{ height: '100%', width: '100%' }}>
       <MapContainer
         style={{ height: '100%', width: '100%' }}
         center={[38.9452, -92.3288]}
