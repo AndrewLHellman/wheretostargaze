@@ -5,7 +5,7 @@ class SpotRequest(BaseModel):
     latitude: float = Field(..., ge=-90, le=90)
     longitude: float = Field(..., ge=-180, le=180)
     drive_time_minutes: Optional[int] = Field(None, ge=5, le=120)
-    radius_miles: Optional[float] = Field(None, ge=1, le=100)
+    radius_miles: Optional[float] = Field(None, ge=1, le=120)
 
 class LightPollutionPoint(BaseModel):
     lat: float

@@ -2,7 +2,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from models.schemas import SpotRequest, SpotResponse, LightPollutionPoint, RecommendedSpot
 from services.isochrone import get_search_area, generate_grid_points, polygon_to_geojson
-from services.light_pollution import get_light_pollution_score, get_quality_description, load_light_pollution_data
+from services.light_pollution import (
+    get_light_pollution_score,
+    get_quality_description,
+    load_light_pollution_data,
+    get_dataset_info
+)
 from services.places import find_best_stargazing_spots
 from cache import get_cache_stats
 import traceback
@@ -100,3 +105,31 @@ async def health():
 @app.get("/cache/stats")
 async def cache_stats():
     return get_cache_stats()
+
+@app.get("/debug/dataset")
+async def debug_dataset():
+    """Get information about the light pollution dataset"""
+    return get_dataset_info()
+
+@app.get("/debug/test-location")
+async def debug_test_location(lat: float = 38.9634, lon: float = -92.3293):
+    """Test light pollution lookup for a specific location"""
+    try:
+        score = await get_light_pollution_score(lat, lon)
+        from services.light_pollution import pollution_score_to_bortle
+        bortle = pollution_score_to_bortle(score)
+        description = get_quality_description(score)
+
+        return {
+            "location": {"lat": lat, "lon": lon},
+            "pollution_score": score,
+            "bortle_scale": bortle,
+            "description": description,
+            "dataset_info": get_dataset_info()
+        }
+    except Exception as e:
+        logger.error(f"Error testing location: {e}")
+        return {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
