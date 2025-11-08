@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from models.schemas import SpotRequest, SpotResponse, LightPollutionPoint, RecommendedSpot
 from services.isochrone import get_search_area, generate_grid_points, polygon_to_geojson
 from services.light_pollution import get_light_pollution_score, get_quality_description
+from services.places import find_best_stargazing_spots
 from cache import get_cache_stats
 import traceback
 import logging
@@ -53,20 +54,24 @@ async def get_stargazing_spots(request: SpotRequest):
             for (lat, lon), score in zip(grid_points, pollution_scores)
         ]
 
-        sorted_points = sorted(zip(grid_points, pollution_scores), key=lambda x: x[1])
-        best_spots = sorted_points[:5]
+        best_spots = await find_best_stargazing_spots(
+            grid_points,
+            pollution_scores,
+            max_spots=10
+        )
 
         recommended_spots = [
             RecommendedSpot(
-                name=f"Dark Sky Location {i+1}",
-                lat=lat,
-                lon=lon,
-                pollution_score=score,
-                place_type="dark_site",
-                rating=None,
-                address=get_quality_description(score)
+                name=spot['name'],
+                lat=spot['lat'],
+                lon=spot['lon'],
+                pollution_score=spot['pollution_score'],
+                place_type=spot['place_type'],
+                rating=spot.get('rating'),
+                address=spot.get('address') or get_quality_description(spot['pollution_score']),
+                google_place_id=spot.get('place_id')
             )
-            for i, ((lat, lon), score) in enumerate(best_spots)
+            for spot in best_spots
         ]
 
         return SpotResponse(
