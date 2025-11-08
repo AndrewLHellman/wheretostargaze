@@ -10,9 +10,11 @@ from services.light_pollution import (
 )
 from services.places import find_best_stargazing_spots
 from cache import get_cache_stats
+from services.get_astronomy_details import get_astronomy_details
 import traceback
 import logging
 import asyncio
+from datetime import datetime
 
 logging.basicConfig(
     level=logging.INFO,
@@ -105,6 +107,20 @@ async def health():
 @app.get("/cache/stats")
 async def cache_stats():
     return get_cache_stats()
+
+@app.get("/api/astronomy")
+async def get_astronomy(latitude: float, longitude: float, date: str = None, time: str = "20:00:00"):
+
+    if date is None:
+        date = datetime.now().strftime("%Y-%m-%d")
+
+    try:
+        celestial_bodies = await get_astronomy_details(latitude, longitude, date, time)
+        return {"celestial_bodies": celestial_bodies}
+    except Exception as e:
+        logger.error(f"Error fetching astronomy details: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/debug/dataset")
 async def debug_dataset():

@@ -158,50 +158,17 @@ async def _get_distance_based_score(lat: float, lon: float) -> float:
 
     return min(max(min_pollution, 0.0), 1.0)
 
-
-def pollution_score_to_bortle(score: float) -> int:
-    """
-    Convert pollution score (0-1) to Bortle scale (1-9).
-    1 = darkest, 9 = brightest
-    """
-    if score <= 0.1:
-        return 1  # Excellent dark sky
-    elif score <= 0.2:
-        return 2  # Typical rural sky
-    elif score <= 0.3:
-        return 3  # Rural sky
-    elif score <= 0.4:
-        return 4  # Rural/suburban transition
-    elif score <= 0.5:
-        return 5  # Suburban sky
-    elif score <= 0.6:
-        return 6  # Bright suburban sky
-    elif score <= 0.75:
-        return 7  # Suburban/urban transition
-    elif score <= 0.9:
-        return 8  # City sky
-    else:
-        return 9  # Inner-city sky
-
-
 def get_quality_description(score: float) -> str:
-    """Get human-readable sky quality description"""
-    bortle = pollution_score_to_bortle(score)
-
-    descriptions = {
-        1: "Excellent - Milky Way casts shadows",
-        2: "Typical rural - Milky Way highly visible",
-        3: "Rural - Milky Way visible",
-        4: "Rural/Suburban - Milky Way weak",
-        5: "Suburban - Milky Way very weak",
-        6: "Bright Suburban - Milky Way invisible",
-        7: "Suburban/Urban - Strong light sources",
-        8: "City - Sky glow visible",
-        9: "Inner City - Entire sky glowing"
-    }
-
-    return descriptions.get(bortle, "Unknown")
-
+    if score <= 0.15:
+        return "Excellent dark sky - ideal for stargazing"
+    elif score <= 0.30:
+        return "Very good - Milky Way clearly visible"
+    elif score <= 0.50:
+        return "Good - suitable for most astronomy"
+    elif score <= 0.70:
+        return "Moderate - brighter objects visible"
+    else:
+        return "Poor - significant light pollution"
 
 def get_dataset_info() -> dict:
     """Get information about the loaded dataset for debugging"""
