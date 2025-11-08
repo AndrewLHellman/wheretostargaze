@@ -47,9 +47,7 @@ export default function MapWithWaypoints({ data }: Props) {
         {userLocation && <RecenterMap latlng={[userLocation.lat, userLocation.lng]} />}
 
         {/* Heatmap */}
-        {heatmapPoints.length > 0 && (
-          <HeatmapLayer points={data?.heatmap.map(p => [p.lat, p.lon, p.pollution_score]) || []} />
-        )}
+        {heatmapPoints.length > 0 && <HeatmapLayer points={data?.heatmap || []} />}
 
         {/* User location */}
         {userLocation && <UserMarker position={[userLocation.lat, userLocation.lng]} />}
