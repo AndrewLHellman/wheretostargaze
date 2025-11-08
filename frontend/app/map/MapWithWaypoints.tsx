@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { MapContainer, TileLayer, Tooltip, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import LucideMarker from './LucideMarker'
@@ -8,6 +8,7 @@ import { FlagTriangleRight } from 'lucide-react'
 import { SpotResponse } from '@/lib/types'
 import UserMarker from '@/components/UserMarker'
 import { useUserLocation } from '@/lib/useUserLocation'
+import HeatmapLayer from './HeatmapLayer'
 
 interface Props {
   data: SpotResponse | null
@@ -20,17 +21,20 @@ export default function MapWithWaypoints({ data }: Props) {
     const map = useMap()
     useEffect(() => {
       if (!latlng) return
-      // animate to the user's location and keep current zoom
       map.flyTo(latlng, map.getZoom())
     }, [latlng && latlng.join(',')])
     return null
   }
+
+  // Prepare heatmap points as [lat, lon, intensity]
+  const heatmapPoints = data?.heatmap.map(point => [point.lat, point.lon, point.pollution_score]) || []
+
   return (
     <div style={{ height: '100%', width: '100%' }}>
       <MapContainer
         style={{ height: '100%', width: '100%' }}
         center={userLocation ? [userLocation.lat, userLocation.lng] : [38.9452, -92.3288]}
-        zoom={17}
+        zoom={13}
         attributionControl={false}
       >
         <TileLayer
@@ -39,8 +43,13 @@ export default function MapWithWaypoints({ data }: Props) {
           subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
         />
 
-        {/* Recenter map whenever userLocation updates */}
+        {/* Recenter map */}
         {userLocation && <RecenterMap latlng={[userLocation.lat, userLocation.lng]} />}
+
+        {/* Heatmap */}
+        {heatmapPoints.length > 0 && (
+          <HeatmapLayer points={data?.heatmap.map(p => [p.lat, p.lon, p.pollution_score]) || []} />
+        )}
 
         {/* User location */}
         {userLocation && <UserMarker position={[userLocation.lat, userLocation.lng]} />}

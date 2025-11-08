@@ -3,7 +3,15 @@
     { "lat": 38.9517, "lon": -92.3341, "pollution_score": 3.2 },
     { "lat": 38.9561, "lon": -92.3201, "pollution_score": 2.8 },
     { "lat": 38.9405, "lon": -92.3507, "pollution_score": 3.9 },
-    { "lat": 38.9302, "lon": -92.3605, "pollution_score": 4.1 }
+    { "lat": 38.9302, "lon": -92.3605, "pollution_score": 4.1 },
+    { "lat": 38.945, "lon": -92.34, "pollution_score": 3.5 },
+    { "lat": 38.948, "lon": -92.325, "pollution_score": 2.7 },
+    { "lat": 38.938, "lon": -92.355, "pollution_score": 4.0 },
+    { "lat": 38.932, "lon": -92.345, "pollution_score": 3.8 },
+    { "lat": 38.95, "lon": -92.33, "pollution_score": 3.1 },
+    { "lat": 38.942, "lon": -92.338, "pollution_score": 3.6 },
+    { "lat": 38.935, "lon": -92.348, "pollution_score": 4.2 },
+    { "lat": 38.9475, "lon": -92.3225, "pollution_score": 2.9 }
   ],
   "recommended_spots": [
     {
