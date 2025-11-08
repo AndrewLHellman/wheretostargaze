@@ -1,13 +1,14 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useUserLocation } from '@/lib/useUserLocation'
 import { MapContainer, TileLayer, Polyline, Marker, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import LucideMarker from './LucideMarker'
 import { Button } from '@radix-ui/themes'
 import { Point } from '@/lib/types'
 import { Heading1, Heading2 } from 'lucide-react'
-import TextMarker from '@/components/TextMarker'
+import UserMarker from '@/components/UserMarker'
 import chroma from 'chroma-js'
 
 export default function MapWithWaypoints() {
@@ -15,6 +16,8 @@ export default function MapWithWaypoints() {
   const [truckRoute, setTruckRoute] = useState<Point[]>([])
   const [droneRoutes, setDroneRoutes] = useState<Point[][]>([])
   const [isLoading, setLoading] = useState(false)
+
+    const { location: userLocation, error: userLocationError } = useUserLocation()
 
   function ClickHandler() {
     useMapEvents({
@@ -40,6 +43,11 @@ export default function MapWithWaypoints() {
         />
 
         <ClickHandler />
+
+          {/* User location marker */}
+          {userLocation && (
+            <UserMarker position={[userLocation.lat, userLocation.lng]} />
+          )}
       </MapContainer>
 
       {/* <Button
