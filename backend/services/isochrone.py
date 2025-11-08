@@ -52,7 +52,7 @@ async def get_search_area(
     if drive_time_mintues:
         return await get_isochrone_polygon(lat, lon, drive_time_mintues)
     elif radius_miles:
-        return get_radius_polygon
+        return get_radius_polygon(lat, lon, radius_miles)
     else:
         return get_radius_polygon(lat, lon, 10.0)
 
@@ -70,6 +70,10 @@ def generate_grid_points(polygon: Polygon, spacing_miles: float = 2.0) -> List[T
                 points.append((lat, lon))
             lon += spacing_degrees
         lat += spacing_degrees
+
+    if len(points) == 0:
+        center = polygon.centroid
+        points.append((center.y, center.x))
 
     return points
 
