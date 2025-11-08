@@ -8,6 +8,8 @@ import { useUserLocation } from '@/lib/useUserLocation'
 type LayerKey = 'cloudCoverage' | 'treeDensity' | 'lightPollution' | 'accessibility'
 type LayerPref = { enabled: boolean; weight: number }
 type MapPrefs = {
+  searchType: 'distance' | 'driveTime'
+  driveTime: number
   travelDistance: number
   units: 'km' | 'mi'
   layers: Record<LayerKey, LayerPref>
@@ -16,6 +18,8 @@ type MapPrefs = {
 const STORAGE_KEY = 'mapPrefs'
 
 const DEFAULT_PREFS: MapPrefs = {
+  searchType: 'driveTime',
+  driveTime: 30,
   travelDistance: 50,
   units: 'mi',
   layers: {
@@ -42,7 +46,10 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) setPrefs(JSON.parse(raw))
+      if (raw) {
+        const loaded = JSON.parse(raw)
+        setPrefs({ ...DEFAULT_PREFS, ...loaded })  // Merge with defaults
+      }
     } catch {}
   }, [])
 
@@ -123,7 +130,31 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
             <h3 className="text-lg font-semibold">Where to Stargaze?</h3>
           </div>
 
-          <div className="mb-3">
+          {/* Search Type Toggle */}
+          <div className="mb-4 flex gap-2">
+            <button
+              className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                prefs.searchType === 'distance'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              }`}
+              onClick={() => save({ ...prefs, searchType: 'distance' })}
+            >
+              Distance
+            </button>
+            <button
+              className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                prefs.searchType === 'driveTime'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              }`}
+              onClick={() => save({ ...prefs, searchType: 'driveTime' })}
+            >
+              Drive Time
+            </button>
+          </div>
+
+          <div className={`mb-3 ${prefs.searchType === 'distance' ? '' : 'opacity-40'}`}>
             <label className="text-sm block mb-1">Max travel distance ({prefs.units})</label>
             <div className="flex items-center gap-2">
               <input
@@ -132,6 +163,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
                 max={prefs.units === 'mi' ? 120 : 120}
                 value={prefs.travelDistance}
                 onChange={e => save({ ...prefs, travelDistance: Number(e.target.value) })}
+                disabled={prefs.searchType !== 'distance'}
               />
               <div className="text-sm w-12 text-right">{prefs.travelDistance}</div>
             </div>
@@ -139,15 +171,33 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
               <button
                 className={`px-2 py-1 rounded text-sm ${prefs.units === 'mi' ? btnActive : ''}`}
                 onClick={() => save({ ...prefs, units: 'mi' })}
+                disabled={prefs.searchType !== 'distance'}
               >
                 miles
               </button>
               <button
                 className={`px-2 py-1 rounded text-sm ${prefs.units === 'km' ? btnActive : ''}`}
                 onClick={() => save({ ...prefs, units: 'km' })}
+                disabled={prefs.searchType !== 'distance'}
               >
                 km
               </button>
+            </div>
+          </div>
+
+          <div className={`mb-3 ${prefs.searchType === 'driveTime' ? '' : 'opacity-40'}`}>
+            <label className="text-sm block mb-1">Drive Time (minutes)</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min={5}
+                max={120}
+                step={5}
+                value={prefs.driveTime}
+                onChange={e => save({ ...prefs, driveTime: Number(e.target.value) })}
+                disabled={prefs.searchType !== 'driveTime'}
+              />
+              <div className="text-sm w-12 text-right">{prefs.driveTime}</div>
             </div>
           </div>
 
