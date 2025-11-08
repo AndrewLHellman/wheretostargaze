@@ -1,28 +1,29 @@
-"use client"
+"use client";
 
-import React from 'react'
-import { Marker } from 'react-leaflet'
-import * as L from 'leaflet'
+import React from "react";
+import { Marker } from "react-leaflet";
+import * as L from "leaflet";
 
 interface UserMarkerProps {
-  position: [number, number]
-  color?: string
+  position: [number, number];
+  color?: string; // fill color of the dot
 }
 
-export default function UserMarker({ position, color = '#1e6dffff' }: UserMarkerProps) {
+export default function UserMarker({ position, color = "#1e6dff" }: UserMarkerProps) {
   const svg = `
-    <svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 24 24'>
-      <g transform='rotate(180 12 12)'>
-        <polygon points='12,2 22,20 12,16 2,20' fill='${color}' stroke='white' stroke-width='1.6' stroke-linejoin='round' />
-      </g>
+    <svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24'>
+      <!-- outer ring -->
+      <circle cx='12' cy='12' r='10' fill='white'/>
+      <!-- inner dot -->
+      <circle cx='12' cy='12' r='7.5' fill='${color}'/>
     </svg>
-  `
+  `;
 
   const icon = L.icon({
     iconUrl: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 28],
-  })
+    iconSize: [28, 28],
+    iconAnchor: [14, 14], // center the icon on the coordinate
+  });
 
-  return <Marker position={position} icon={icon} />
+  return <Marker position={position} icon={icon} />;
 }
