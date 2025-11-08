@@ -1,5 +1,5 @@
-import React from 'react'
-import { X, MapPin, Star, Navigation } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { X, MapPin, Star, Navigation, Telescope } from 'lucide-react'
 import { RecommendedSpot } from '@/lib/types'
 
 interface SpotInformationProps {
@@ -7,9 +7,40 @@ interface SpotInformationProps {
   onClose: () => void
 }
 
+interface CelestialBody {
+  altitude: number
+  azimuth: number
+  constellation: string
+}
+
 export default function SpotInformation({ spot, onClose }: SpotInformationProps) {
+  const [celestialBodies, setCelestialBodies] = useState<Record<string, CelestialBody>>({})
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchAstronomy = async () => {
+      try {
+        const now = new Date()
+        const date = now.toISOString().split('T')[0]
+        const time = "20:00:00" // 8 PM for stargazing
+        
+        const response = await fetch(
+          `http://localhost:8000/api/astronomy?latitude=${spot.lat}&longitude=${spot.lon}&date=${date}&time=${time}`
+        )
+        const data = await response.json()
+        setCelestialBodies(data.celestial_bodies || {})
+      } catch (error) {
+        console.error('Error fetching astronomy data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAstronomy()
+  }, [spot.lat, spot.lon])
+
   return (
-    <div className="fixed top-20 right-4 z-[1000] bg-[#1f2230] rounded-lg shadow-2xl p-6 max-w-sm border border-purple-500/30">
+    <div className="fixed top-0 right-0 z-[1000] bg-[#1f2230] shadow-2xl p-6 w-96 h-screen overflow-y-auto border-l border-purple-500/30">
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-xl font-bold text-white">{spot.name}</h3>
@@ -65,6 +96,39 @@ export default function SpotInformation({ spot, onClose }: SpotInformationProps)
           <p className="text-sm font-mono text-gray-300">
             {spot.lat.toFixed(4)}, {spot.lon.toFixed(4)}
           </p>
+        </div>
+
+        {/* Visible Celestial Bodies */}
+        <div className="mt-4 p-3 bg-indigo-900/30 rounded-lg border border-indigo-500/20">
+          <div className="flex items-center gap-2 mb-2">
+            <Telescope size={18} className="text-indigo-400" />
+            <p className="text-xs text-gray-400">Visible Tonight (8 PM)</p>
+          </div>
+          
+          {loading ? (
+            <p className="text-sm text-gray-400">Loading celestial data...</p>
+          ) : Object.keys(celestialBodies).length > 0 ? (
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {Object.entries(celestialBodies).slice(0, 5).map(([name, details]) => (
+                <div key={name} className="text-xs">
+                  <div className="text-gray-300">
+                    <span className="font-semibold text-indigo-300">{name}</span>
+                    <span className="text-gray-400"> in {details.constellation}</span>
+                  </div>
+                  <div className="text-gray-500 text-[10px] ml-1">
+                    Alt: {details.altitude.toFixed(1)}° • Az: {details.azimuth.toFixed(1)}°
+                  </div>
+                </div>
+              ))}
+              {Object.keys(celestialBodies).length > 5 && (
+                <p className="text-xs text-gray-500 italic mt-1">
+                  +{Object.keys(celestialBodies).length - 5} more visible
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400">No celestial data available</p>
+          )}
         </div>
       </div>
 
