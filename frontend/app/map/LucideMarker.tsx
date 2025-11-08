@@ -2,7 +2,7 @@
 
 import { Marker } from 'react-leaflet'
 import L, { LatLngExpression, PointTuple } from 'leaflet'
-import React, { useEffect, useState } from 'react'
+import React, { PropsWithChildren, useEffect, useState } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { FlagTriangleRight, LucideProps } from 'lucide-react'
 
@@ -26,7 +26,8 @@ export default function LucideMarker({
   anchor,
   onRightClick,
   LucideIcon = FlagTriangleRight,
-}: Props) {
+  children,
+}: PropsWithChildren<Props>) {
   const [icon, setIcon] = useState<L.DivIcon | null>(null)
 
   useEffect(() => {
@@ -68,6 +69,8 @@ export default function LucideMarker({
           onRightClick?.()
         },
       }}
-    />
+    >
+      {children}
+    </Marker>
   )
 }

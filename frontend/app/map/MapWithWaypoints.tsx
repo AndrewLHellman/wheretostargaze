@@ -1,61 +1,67 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useUserLocation } from '@/lib/useUserLocation'
-import { MapContainer, TileLayer, Polyline, Marker, useMapEvents } from 'react-leaflet'
+import React, { useState, useEffect } from 'react'
+import { MapContainer, TileLayer, Tooltip, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import LucideMarker from './LucideMarker'
-import { Button } from '@radix-ui/themes'
-import { Point } from '@/lib/types'
-import { Heading1, Heading2 } from 'lucide-react'
+import { FlagTriangleRight } from 'lucide-react'
+import { SpotResponse } from '@/lib/types'
 import UserMarker from '@/components/UserMarker'
-import chroma from 'chroma-js'
+import { useUserLocation } from '@/lib/useUserLocation'
 
-export default function MapWithWaypoints() {
-  const [waypoints, setWaypoints] = useState<Point[]>([])
-  const [truckRoute, setTruckRoute] = useState<Point[]>([])
-  const [droneRoutes, setDroneRoutes] = useState<Point[][]>([])
-  const [isLoading, setLoading] = useState(false)
+interface Props {
+  data: SpotResponse | null
+}
 
-    const { location: userLocation, error: userLocationError } = useUserLocation()
+export default function MapWithWaypoints({ data }: Props) {
+  const { location: userLocation } = useUserLocation()
 
-  function ClickHandler() {
-    useMapEvents({
-      click(e) {
-        setWaypoints(prev => [...prev, { lat: e.latlng.lat, lng: e.latlng.lng }])
-      },
-    })
+  function RecenterMap({ latlng }: { latlng: [number, number] }) {
+    const map = useMap()
+    useEffect(() => {
+      if (!latlng) return
+      // animate to the user's location and keep current zoom
+      map.flyTo(latlng, map.getZoom())
+    }, [latlng && latlng.join(',')])
     return null
   }
   return (
     <div style={{ height: '100%', width: '100%' }}>
       <MapContainer
         style={{ height: '100%', width: '100%' }}
-        center={[38.9452, -92.3288]}
+        center={userLocation ? [userLocation.lat, userLocation.lng] : [38.9452, -92.3288]}
         zoom={17}
         attributionControl={false}
       >
         <TileLayer
           attribution='&copy; OpenStreetMap contributors &copy; CARTO'
-          // url='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
           url='https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
           subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
         />
 
-        <ClickHandler />
+        {/* Recenter map whenever userLocation updates */}
+        {userLocation && <RecenterMap latlng={[userLocation.lat, userLocation.lng]} />}
 
-          {/* User location marker */}
-          {userLocation && (
-            <UserMarker position={[userLocation.lat, userLocation.lng]} />
-          )}
+        {/* User location */}
+        {userLocation && <UserMarker position={[userLocation.lat, userLocation.lng]} />}
+
+        {/* Recommended spots */}
+        {data?.recommended_spots?.map((spot, i) => (
+          <LucideMarker
+            key={i}
+            position={[spot.lat, spot.lon]}
+            size={28}
+            color='#2563eb'
+            align='bottom'
+            LucideIcon={FlagTriangleRight}
+            onRightClick={() => alert(`Right-clicked: ${spot.name}`)}
+          >
+            <Tooltip direction='top' offset={[0, -10]} opacity={1} permanent={false}>
+              {spot.name}
+            </Tooltip>
+          </LucideMarker>
+        ))}
       </MapContainer>
-
-      {/* <Button
-        className='absolute bottom-5 right-5 p-2 bg-blue-500 text-white !z-[100000] cursor-pointer rounded-md'
-        loading={isLoading}
-      >
-        Generate Route
-      </Button> */}
     </div>
   )
 }
