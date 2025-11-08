@@ -9,6 +9,8 @@ from services.light_pollution import (
     get_dataset_info
 )
 from services.places import find_best_stargazing_spots
+from services.cloud_cover import get_cloud_cover, get_cloud_quality_score
+from services.cloud_cover_strategy import get_cloud_cover_for_area, estimate_api_calls
 from cache import get_cache_stats
 from services.get_astronomy_details import get_astronomy_details
 import traceback
@@ -61,14 +63,23 @@ async def get_stargazing_spots(request: SpotRequest):
         ]
         pollution_scores = await asyncio.gather(*pollution_tasks)
 
+        cloud_covers = await get_cloud_cover_for_area(
+            grid_points,
+            sample_strategy="sparse"
+        )
+
+        api_calls = estimate_api_calls(len(grid_points), "sparse")
+        logger.info(f"Cloud cover: {api_calls} API calls for {len(grid_points)} points")
+
         heatmap = [
-            LightPollutionPoint(lat=lat, lon=lon, pollution_score=score)
-            for (lat, lon), score in zip(grid_points, pollution_scores)
+            LightPollutionPoint(lat=lat, lon=lon, pollution_score=score, cloud_cover=cloud)
+            for (lat, lon), score, cloud in zip(grid_points, pollution_scores, cloud_covers)
         ]
 
         best_spots = await find_best_stargazing_spots(
             grid_points,
             pollution_scores,
+            cloud_covers,
             max_spots=10
         )
 
@@ -78,6 +89,8 @@ async def get_stargazing_spots(request: SpotRequest):
                 lat=spot['lat'],
                 lon=spot['lon'],
                 pollution_score=spot['pollution_score'],
+                cloud_cover=spot.get('cloud_cover'),
+                stargazing_score=spot.get('stargazing_score'),
                 place_type=spot['place_type'],
                 rating=spot.get('rating'),
                 address=spot.get('address') or get_quality_description(spot['pollution_score']),

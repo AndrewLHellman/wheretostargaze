@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     openroute_api_key: Optional[str] = None
     redis_url: str = "redis://localhost:6379"
     light_pollution_data_path: str = str(_default_data_path)
+    openweather_api_key: Optional[str] = None
+    astronomy_id: Optional[str] = None
+    astronomy_secret: Optional[str] = None
 
     model_config = {
         "env_file": ".env"

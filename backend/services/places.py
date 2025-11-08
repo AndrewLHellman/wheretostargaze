@@ -33,6 +33,23 @@ def is_stargazing_friendly(place_name: str, place_type: str) -> bool:
 
     return True
 
+def calculate_stargazing_score(
+    pollution_score: float,
+    cloud_cover: Optional[float],
+    pollution_weight: float = 0.7,
+    cloud_weight: float = 0.3
+) -> float:
+    pollution_quality = 1.0 - pollution_score
+
+    if cloud_cover is not None:
+        cloud_quality = 1.0 - (cloud_cover / 100.0)
+    else:
+        cloud_quality = 0.5
+
+    combined_score = (pollution_quality * pollution_weight) + (cloud_quality * cloud_weight)
+
+    return combined_score
+
 @cache_response(ttl_seconds=604800, prefix="places")
 async def search_nearby_places(lat: float, lon: float, radius_meters: int = 5000) -> List[dict]:
     if not settings.google_places_api_key or settings.google_places_api_key == "dummy_key_for_testing":
@@ -85,11 +102,28 @@ async def search_nearby_places(lat: float, lon: float, radius_meters: int = 5000
 async def find_best_stargazing_spots(
     grid_points: List[Tuple[float, float]],
     pollution_scores: List[float],
-    max_spots: int = 10
+    cloud_covers: Optional[List[Optional[float]]] = None,
+    max_spots: int = 10,
+    pollution_weight: float = 0.7,
+    cloud_weight: float = 0.3
 ) -> List[dict]:
+    if cloud_covers is None:
+        cloud_covers = [None] * len(grid_points)
+
+    combined_scores = [
+        calculate_stargazing_score(
+            pollution,
+            cloud,
+            pollution_weight,
+            cloud_weight
+        )
+        for pollution, cloud in zip(pollution_scores, cloud_covers)
+    ]
+
     sorted_points = sorted(
-        zip(grid_points, pollution_scores),
-        key=lambda x: x[1]
+        zip(grid_points, pollution_scores, cloud_covers, combined_scores),
+        key=lambda x: x[3],
+        reverse=True
     )
 
     recommended_spots = []
@@ -97,7 +131,7 @@ async def find_best_stargazing_spots(
 
     priority_types = ['campground', 'park', 'point_of_interest']
 
-    for (lat, lon), score in sorted_points[:20]:
+    for (lat, lon), pollution, cloud, combined_score in sorted_points[:20]:
         places = await search_nearby_places(lat, lon, radius_meters=5000)
 
         def place_priority(place):
@@ -117,7 +151,9 @@ async def find_best_stargazing_spots(
             if place_id:
                 seen_places.add(place_id)
 
-            place['pollution_score'] = score
+            place['pollution_score'] = pollution
+            place['cloud_cover'] = cloud
+            place['stargazing_score'] = combined_score
             recommended_spots.append(place)
 
             if len(recommended_spots) >= max_spots:
@@ -125,7 +161,7 @@ async def find_best_stargazing_spots(
 
     grid_index = 0
     while len(recommended_spots) < max_spots and grid_index < len(sorted_points):
-        (lat, lon), score = sorted_points[grid_index]
+        (lat, lon), pollution, cloud, combined_score = sorted_points[grid_index]
 
         is_near_existing = any(
             abs(spot['lat'] - lat) < 0.05 and abs(spot['lon'] - lon) < 0.05
@@ -140,9 +176,11 @@ async def find_best_stargazing_spots(
                 'lon': lon,
                 'place_type': 'dark_site',
                 'rating': None,
-                'address': get_quality_description(score),
+                'address': get_quality_description(pollution),
                 'place_id': None,
-                'pollution_score': score
+                'pollution_score': pollution,
+                'cloud_cover': cloud,
+                'stargazing_score': combined_score
             })
 
         grid_index += 1

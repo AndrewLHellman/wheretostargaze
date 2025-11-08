@@ -11,12 +11,15 @@ class LightPollutionPoint(BaseModel):
     lat: float
     lon: float
     pollution_score: float
+    cloud_cover: Optional[float] = None
 
 class RecommendedSpot(BaseModel):
     name: str
     lat: float
     lon: float
     pollution_score: float
+    cloud_cover: Optional[float] = None
+    stargazing_score: Optional[float] = None
     place_type: str
     rating: Optional[float] = None
     address: Optional[str] = None
