@@ -13,6 +13,7 @@ export default function HeatmapLayer({ points }: HeatmapProps) {
   useEffect(() => {
     if (!map || points.length === 0) return
 
+    // Create heat layer
     // @ts-expect-error next-line
     const heat = L.heatLayer(points, {
       radius: 100,
@@ -25,14 +26,19 @@ export default function HeatmapLayer({ points }: HeatmapProps) {
         1.0: 'rgba(255,0,0,1.0)',
       },
     }).addTo(map)
-    map.on('zoomend', () => {
-      const zoom = map.getZoom()
-      if (heat) {
-        heat.setOptions({ radius: 20 + zoom * 2 }) // increase radius as you zoom in
-      }
-    })
 
+    // Fix “moving heatmap” by re-setting points on zoom
+    const updateHeat = () => {
+      heat.setLatLngs(points)
+      const zoom = map.getZoom()
+      heat.setOptions({ radius: 20 + zoom * 2 }) // optionally scale radius
+    }
+
+    map.on('zoomend', updateHeat)
+
+    // Cleanup
     return () => {
+      map.off('zoomend', updateHeat)
       heat.remove()
     }
   }, [map, points])
