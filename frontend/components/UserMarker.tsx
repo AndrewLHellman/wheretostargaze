@@ -9,7 +9,7 @@ interface UserMarkerProps {
   color?: string
 }
 
-export default function UserMarker({ position, color = '#1e90ff' }: UserMarkerProps) {
+export default function UserMarker({ position, color = '#1e6dffff' }: UserMarkerProps) {
   const svg = `
     <svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 24 24'>
       <g transform='rotate(180 12 12)'>
