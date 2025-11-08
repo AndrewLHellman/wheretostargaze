@@ -34,8 +34,9 @@ export default function MapWithWaypoints() {
       >
         <TileLayer
           attribution='&copy; OpenStreetMap contributors &copy; CARTO'
-          url='https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
-          subdomains='abcd'
+          // url='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+          url='https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
+          subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
         />
 
         <ClickHandler />

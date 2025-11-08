@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'RoutePEARL Portal',
-  description: 'RoutePEARL truck-drone hybrid route planner',
+  title: 'Where to Star Gaze',
+  description: 'Where to star gaze',
 }
 
 export default function RootLayout({
