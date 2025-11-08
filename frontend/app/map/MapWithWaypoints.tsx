@@ -5,9 +5,15 @@ import { useUserLocation } from '@/lib/useUserLocation'
 import { MapContainer, TileLayer } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import UserMarker from '@/components/UserMarker'
+import { SpotResponse } from '@/lib/types'
 
-export default function MapWithWaypoints() {
+interface Props {
+  data: SpotResponse | null
+}
+
+export default function MapWithWaypoints({ data }: Props) {
   const { location: userLocation, error: userLocationError } = useUserLocation()
+  console.log(data)
 
   return (
     <div style={{ height: '100%', width: '100%' }}>
