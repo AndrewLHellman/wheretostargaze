@@ -2,31 +2,18 @@
 
 import React, { useState, useEffect } from 'react'
 import { useUserLocation } from '@/lib/useUserLocation'
-import { MapContainer, TileLayer, Polyline, Marker, useMapEvents, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import LucideMarker from './LucideMarker'
-import { Button } from '@radix-ui/themes'
-import { Point } from '@/lib/types'
-import { Heading1, Heading2 } from 'lucide-react'
 import UserMarker from '@/components/UserMarker'
-import chroma from 'chroma-js'
+import { SpotResponse } from '@/lib/types'
 
-export default function MapWithWaypoints() {
-  const [waypoints, setWaypoints] = useState<Point[]>([])
-  const [truckRoute, setTruckRoute] = useState<Point[]>([])
-  const [droneRoutes, setDroneRoutes] = useState<Point[][]>([])
-  const [isLoading, setLoading] = useState(false)
+interface Props {
+  data: SpotResponse | null
+}
 
-    const { location: userLocation, error: userLocationError } = useUserLocation()
-
-  function ClickHandler() {
-    useMapEvents({
-      click(e) {
-        setWaypoints(prev => [...prev, { lat: e.latlng.lat, lng: e.latlng.lng }])
-      },
-    })
-    return null
-  }
+export default function MapWithWaypoints({ data }: Props) {
+  const { location: userLocation, error: userLocationError } = useUserLocation()
+  console.log(data)
 
   function RecenterMap({ latlng }: { latlng: [number, number] }) {
     const map = useMap()
@@ -51,8 +38,6 @@ export default function MapWithWaypoints() {
           url='https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
           subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
         />
-
-        <ClickHandler />
 
   {/* Recenter map whenever userLocation updates */}
   {userLocation && <RecenterMap latlng={[userLocation.lat, userLocation.lng]} />}

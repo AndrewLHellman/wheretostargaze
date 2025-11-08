@@ -1,0 +1,45 @@
+{
+  "heatmap": [
+    { "lat": 38.9517, "lon": -92.3341, "pollution_score": 3.2 },
+    { "lat": 38.9561, "lon": -92.3201, "pollution_score": 2.8 },
+    { "lat": 38.9405, "lon": -92.3507, "pollution_score": 3.9 },
+    { "lat": 38.9302, "lon": -92.3605, "pollution_score": 4.1 }
+  ],
+  "recommended_spots": [
+    {
+      "name": "Eagle Bluffs Conservation Area",
+      "lat": 38.8667,
+      "lon": -92.3923,
+      "pollution_score": 1.5,
+      "place_type": "park",
+      "rating": 4.7,
+      "address": "6700 W Route K, Columbia, MO 65203",
+      "google_place_id": "ChIJfT4RL8aE2IcRZlA8Jd2l7jA"
+    },
+    {
+      "name": "Rock Bridge Memorial State Park",
+      "lat": 38.8855,
+      "lon": -92.3336,
+      "pollution_score": 2.0,
+      "place_type": "park",
+      "rating": 4.8,
+      "address": "5901 S Hwy 163, Columbia, MO 65203",
+      "google_place_id": "ChIJrZBk6I2E2IcRq5Vuz0TlmAs"
+    },
+    {
+      "name": "Three Creeks Conservation Area",
+      "lat": 38.8289,
+      "lon": -92.2715,
+      "pollution_score": 1.9,
+      "place_type": "conservation_area",
+      "rating": 4.6,
+      "address": "Columbia, MO 65203",
+      "google_place_id": "ChIJ0YF1ksKE2IcRQF8LZsI5ZgE"
+    }
+  ],
+  "search_area": {
+    "center": { "lat": 38.9517, "lon": -92.3341 },
+    "radius_miles": 25,
+    "drive_time_minutes": 45
+  }
+}
