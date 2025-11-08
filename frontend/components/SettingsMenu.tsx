@@ -128,9 +128,9 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
             {(Object.keys(prefs.layers) as LayerKey[]).map(key => {
               const layer = prefs.layers[key]
               const label = {
-                cloudCoverage: 'Cloud coverage',
-                treeDensity: 'Tree density',
-                lightPollution: 'Light pollution',
+                cloudCoverage: 'Cloud Coverage',
+                treeDensity: 'Tree Density',
+                lightPollution: 'Light Pollution',
                 accessibility: 'Accessibility',
               }[key]
 
