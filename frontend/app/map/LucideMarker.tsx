@@ -15,6 +15,7 @@ type Props = {
   align?: Align
   anchor?: PointTuple
   onRightClick?: () => void
+  onClick?: () => void
   LucideIcon?: React.ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & React.RefAttributes<SVGSVGElement>>
 }
 
@@ -25,6 +26,7 @@ export default function LucideMarker({
   align = 'center',
   anchor,
   onRightClick,
+  onClick,
   LucideIcon = FlagTriangleRight,
   children,
 }: PropsWithChildren<Props>) {
@@ -68,6 +70,9 @@ export default function LucideMarker({
           e.originalEvent.preventDefault() // prevent browser menu
           onRightClick?.()
         },
+        click: () => {
+          onClick?.()
+        }
       }}
     >
       {children}
