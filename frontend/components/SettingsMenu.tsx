@@ -38,6 +38,7 @@ interface SettingsMenuProps {
 export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMenuProps) {
   const [open, setOpen] = useState<boolean>(sidebar)
   const [prefs, setPrefs] = useState<MapPrefs>(DEFAULT_PREFS)
+  const [logoLoaded, setLogoLoaded] = useState<boolean>(true)
 
   useEffect(() => {
     try {
@@ -81,7 +82,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
           className='p-2 bg-white/90 dark:bg-black/80 rounded-lg shadow-md border border-gray-200 hover:opacity-90'
         >
           <svg width='20' height='20' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
-            <path d='M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z' stroke='#333' strokeWidth='1.2' />
+            <path d='M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z' stroke='#1f2230ff' strokeWidth='1.2' />
             <path
               d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06A2 2 0 1 1 4.27 16.9l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09c.66 0 1.25-.39 1.51-1a1.65 1.65 0 0 0-.33-1.82L4.32 3.6A2 2 0 1 1 7.15.77l.06.06c.5.5 1.19.78 1.82.66.51-.1 1.04-.16 1.58-.16h.04c.54 0 1.07.06 1.58.16.63.12 1.32-.16 1.82-.66l.06-.06A2 2 0 1 1 19.68 3.6l-.06.06c-.5.5-.78 1.19-.66 1.82.1.51.16 1.04.16 1.58v.04c0 .54-.06 1.07-.16 1.58-.12.63.16 1.32.66 1.82l.06.06A2 2 0 1 1 19.4 15z'
               stroke='#333'
@@ -93,7 +94,34 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
 
       {open && (
         <div className={`${containerBase} ${sidebar ? '' : 'rounded-md shadow-lg border border-gray-200'}`}>
-          <h3 className='font-large mb-2'>Map Preferences</h3>
+          <div className='flex items-center justify-between mb-2'>
+            <h3 className='text-lg font-semibold'>Where to Stargaze?</h3>
+            <div className='flex items-center'>
+              {logoLoaded ? (
+                <img
+                  src='/32x32StarLogo.png'
+                  alt='logo'
+                  className='h-16 w-16 object-contain'
+                  onError={() => setLogoLoaded(false)}
+                />
+              ) : (
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  stroke='currentColor'
+                  className='h-8 w-8 text-yellow-400'
+                >
+                  <path
+                    d='M12 2l2.09 6.26L20 10l-5 3.64L16.18 20 12 16.9 7.82 20 9 13.64 4 10l5.91-1.74L12 2z'
+                    strokeWidth='0.6'
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                  />
+                </svg>
+              )}
+            </div>
+          </div>
 
           <div className='mb-3'>
             <label className='text-sm block mb-1'>Max travel distance ({prefs.units})</label>
