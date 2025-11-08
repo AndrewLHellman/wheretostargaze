@@ -96,6 +96,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
         <div className={`${containerBase} ${sidebar ? '' : 'rounded-md shadow-lg border border-gray-200'}`}>
           <div className='flex items-center justify-between mb-2'>
             <h3 className='text-lg font-semibold'>Where to Stargaze?</h3>
+            {/* logo commented out for now
             <div className='flex items-center'>
               {logoLoaded ? (
                 <img
@@ -121,6 +122,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
                 </svg>
               )}
             </div>
+            */}
           </div>
 
           <div className='mb-3'>
