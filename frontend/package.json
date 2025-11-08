@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@radix-ui/themes": "^3.2.1",
+    "astronomy-engine": "^2.1.19",
     "chroma-js": "^3.1.2",
     "leaflet": "^1.9.4",
     "leaflet-polylinedecorator": "^1.6.0",
@@ -19,7 +20,6 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-leaflet": "^5.0.0",
-    "react-leaflet-heatmap-layer": "^2.0.0",
     "react-leaflet-tracking-marker": "^1.0.16"
   },
   "devDependencies": {
