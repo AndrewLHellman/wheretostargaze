@@ -163,7 +163,7 @@ function Content({
       <div className="mt-4 p-3 bg-blue-900/30 rounded-lg border border-blue-500/20">
         <p className="text-xs text-gray-400 mb-1">Cloud Coverage</p>
         <p className="text-2xl font-bold text-blue-400">
-          {spot.cloud_cover != null ? `${(spot.cloud_cover * 100).toFixed(0)}%` : 'N/A'}
+          {spot.cloud_cover != null ? `${(spot.cloud_cover).toFixed(0)}%` : 'N/A'}
         </p>
         <p className="text-xs text-gray-400 mt-1">
           {spot.cloud_cover != null
