@@ -127,68 +127,61 @@ function Content({
         </div>
       )}
 
-      {spot.place_type !== 'custom_spot' && (
-        <>
-          {/* Light Pollution */}
-          <div className='mt-4 p-3 bg-purple-900/30 rounded-lg border border-purple-500/20'>
-            <p className='text-xs text-gray-400 mb-1'>Light Pollution Score</p>
-            <p className='text-2xl font-bold text-purple-400'>{spot.pollution_score.toFixed(2)}</p>
-            <p className='text-xs text-gray-400 mt-1'>Lower is better for stargazing</p>
-          </div>
+      {/* Light Pollution */}
+      <div className='mt-4 p-3 bg-purple-900/30 rounded-lg border border-purple-500/20'>
+        <p className='text-xs text-gray-400 mb-1'>Light Pollution Score</p>
+        <p className='text-2xl font-bold text-purple-400'>{spot.pollution_score.toFixed(2)}</p>
+        <p className='text-xs text-gray-400 mt-1'>Lower is better for stargazing</p>
+      </div>
 
-          {/* Tree Density */}
-          {spot.tree_density_score != null && (
-            <div className='mt-4 p-3 bg-green-900/30 rounded-lg border border-green-500/20'>
-              <p className='text-xs text-gray-400 mb-1'>Tree Density Score</p>
-              <p className='text-2xl font-bold text-green-400'>{spot.tree_density_score.toFixed(2)}</p>
-              <p className='text-xs text-gray-400 mt-1'>
-                {spot.tree_density_score < 0.3
-                  ? 'Open sky'
-                  : spot.tree_density_score < 0.6
-                  ? 'Moderate cover'
-                  : 'Dense forest'}
-              </p>
-            </div>
-          )}
-
-          {/* Cloud Coverage */}
-          <div className='mt-4 p-3 bg-blue-900/30 rounded-lg border border-blue-500/20'>
-            <p className='text-xs text-gray-400 mb-1'>Cloud Coverage</p>
-            <p className='text-2xl font-bold text-blue-400'>
-              {spot.cloud_cover != null ? `${spot.cloud_cover.toFixed(0)}%` : 'N/A'}
-            </p>
-            <p className='text-xs text-gray-400 mt-1'>
-              {spot.cloud_cover != null
-                ? spot.cloud_cover < 0.3
-                  ? 'Clear skies'
-                  : spot.cloud_cover < 0.6
-                  ? 'Partly cloudy'
-                  : 'Mostly cloudy'
-                : 'Data not available'}
-            </p>
-          </div>
-
-          {/* Overall score */}
-          <div className='mt-4 p-4 bg-gradient-to-br from-purple-900/50 to-indigo-900/50 rounded-lg border-2 border-purple-400/40 shadow-lg'>
-            <p className='text-xs text-gray-300 mb-1 font-semibold'>Overall Stargazing Score</p>
-            <p className='text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400'>
-              {spot.stargazing_score.toFixed(3)}
-            </p>
-            <p className='text-xs text-gray-400 mt-1'>
-              {spot.stargazing_score >= 0.8
-                ? '⭐ Excellent'
-                : spot.stargazing_score >= 0.6
-                ? '✨ Very Good'
-                : spot.stargazing_score >= 0.4
-                ? '🌟 Good'
-                : spot.stargazing_score >= 0.2
-                ? '☁️ Fair'
-                : '🌫️ Poor'}
-            </p>
-            <p className='text-[10px] text-gray-500 mt-2'>Based on light pollution, clouds, and tree cover</p>
-          </div>
-        </>
+      {/* Tree Density */}
+      {spot.tree_density_score != null && (
+        <div className='mt-4 p-3 bg-green-900/30 rounded-lg border border-green-500/20'>
+          <p className='text-xs text-gray-400 mb-1'>Tree Density Score</p>
+          <p className='text-2xl font-bold text-green-400'>{spot.tree_density_score.toFixed(2)}</p>
+          <p className='text-xs text-gray-400 mt-1'>
+            {spot.tree_density_score < 0.3 ? 'Open sky' : spot.tree_density_score < 0.6 ? 'Moderate cover' : 'Dense forest'}
+          </p>
+        </div>
       )}
+
+      {/* Cloud Coverage */}
+      <div className='mt-4 p-3 bg-blue-900/30 rounded-lg border border-blue-500/20'>
+        <p className='text-xs text-gray-400 mb-1'>Cloud Coverage</p>
+        <p className='text-2xl font-bold text-blue-400'>
+          {spot.cloud_cover != null ? `${spot.cloud_cover.toFixed(0)}%` : 'N/A'}
+        </p>
+        <p className='text-xs text-gray-400 mt-1'>
+          {spot.cloud_cover != null
+            ? spot.cloud_cover < 0.3
+              ? 'Clear skies'
+              : spot.cloud_cover < 0.6
+              ? 'Partly cloudy'
+              : 'Mostly cloudy'
+            : 'Data not available'}
+        </p>
+      </div>
+
+      {/* Overall score */}
+      <div className='mt-4 p-4 bg-gradient-to-br from-purple-900/50 to-indigo-900/50 rounded-lg border-2 border-purple-400/40 shadow-lg'>
+        <p className='text-xs text-gray-300 mb-1 font-semibold'>Overall Stargazing Score</p>
+        <p className='text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400'>
+          {spot.stargazing_score.toFixed(3)}
+        </p>
+        <p className='text-xs text-gray-400 mt-1'>
+          {spot.stargazing_score >= 0.8
+            ? '⭐ Excellent'
+            : spot.stargazing_score >= 0.6
+            ? '✨ Very Good'
+            : spot.stargazing_score >= 0.4
+            ? '🌟 Good'
+            : spot.stargazing_score >= 0.2
+            ? '☁️ Fair'
+            : '🌫️ Poor'}
+        </p>
+        <p className='text-[10px] text-gray-500 mt-2'>Based on light pollution, clouds, and tree cover</p>
+      </div>
+
       {/* Coordinates */}
       <div className='mt-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700'>
         <p className='text-xs text-gray-400 mb-1'>Coordinates</p>

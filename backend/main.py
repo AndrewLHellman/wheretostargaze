@@ -64,14 +64,6 @@ async def get_stargazing_spots(request: SpotRequest):
             request.drive_time_minutes,
             request.radius_miles
         )
-        custom_spots = locations.all() # type: ignore
-        print(custom_spots)
-        spots_in_polygon = [
-            spot for spot in custom_spots
-            if polygon.contains(Point(spot['lon'], spot['lat']))
-        ]
-        print(spots_in_polygon)
-
 
         grid_points = generate_grid_points(polygon, spacing_miles=2.0)
 
@@ -119,25 +111,41 @@ async def get_stargazing_spots(request: SpotRequest):
             )
             for spot in best_spots
         ]
+        
+        custom_spots = locations.all() # type: ignore
+        spots_in_polygon = [
+            spot for spot in custom_spots
+            if polygon.contains(Point(spot['lon'], spot['lat']))
+        ]
+        custom_tree_scores = await get_tree_density_scores_batch([(spot['lat'], spot['lon']) for spot in spots_in_polygon])
+        i = 0
         for spot in spots_in_polygon:
+            lat, lon = spot['lat'], spot['lon']
+            pollution = await get_light_pollution_score(lat, lon)
+            cloud_cover = await get_cloud_cover(lat, lon)
+            tree_density = custom_tree_scores[i]
+            stargazing_score = calculate_stargazing_score(
+                pollution,
+                cloud_cover,
+                tree_density,
+                pollution,
+            )
             recommended_spots.append(RecommendedSpot(
                 name=spot['name'],
-                lat=spot['lat'],
-                lon=spot['lon'],
-                pollution_score=0,
-                cloud_cover=0,
-                tree_density_score=0,
-                stargazing_score=0,
+                lat=lat,
+                lon=lon,
+                pollution_score=pollution,
+                cloud_cover=cloud_cover,
+                tree_density_score=tree_density,
+                stargazing_score=stargazing_score,
                 place_type='custom_spot',
                 rating=None,
                 address='N/A',
                 google_place_id='N/A'
 
             ))
+            i += 1
 
-        print(polygon)
-        print(custom_spots)
-        print(spots_in_polygon)
         return SpotResponse(
             heatmap=heatmap,
             recommended_spots=recommended_spots,
