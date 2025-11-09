@@ -100,6 +100,9 @@ async def get_stargazing_spots(request: SpotRequest):
             pollution_scores,
             cloud_covers,
             tree_scores,
+            pollution_weight=request.pollution_weight / max(sum(request.pollution_weight, request.cloud_weight, request.tree_weight), 1),
+            cloud_weight=request.cloud_weight / max(sum(request.pollution_weight, request.cloud_weight, request.tree_weight), 1),
+            tree_weight=request.tree_weight / max(sum(request.pollution_weight, request.cloud_weight, request.tree_weight), 1),
             max_spots=10
         )
 

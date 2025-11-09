@@ -6,6 +6,9 @@ class SpotRequest(BaseModel):
     longitude: float = Field(..., ge=-180, le=180)
     drive_time_minutes: Optional[int] = Field(None, ge=5, le=120)
     radius_miles: Optional[float] = Field(None, ge=1, le=120)
+    pollution_weight: Optional[int] = Field(50, ge=0, le=100)
+    cloud_weight: Optional[int] = Field(25, ge=0, le=100)
+    tree_weight: Optional[int] = Field(25, ge=0, le=100)
 
 class HeatmapPoint(BaseModel):
     lat: float
