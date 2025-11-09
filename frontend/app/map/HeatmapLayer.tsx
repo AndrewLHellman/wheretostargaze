@@ -65,7 +65,7 @@ export default function HeatmapLayer({
   points,
   maxDistance = 0.02,
   blur = 15,
-  opacity = 0.6,
+  opacity = 0.4,
   gradient = {
     0: '0,0,255',
     0.25: '0,255,0',
@@ -95,7 +95,7 @@ export default function HeatmapLayer({
         const image = ctx.createImageData(size.x, size.y)
         const data = image.data
 
-        const step = 5 // pixels per iteration
+        const step = 20 // pixels per iteration
 
         for (let y = 0; y < size.y; y += step) {
           for (let x = 0; x < size.x; x += step) {
