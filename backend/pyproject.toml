@@ -35,3 +35,6 @@ dev = [
     "pytest-asyncio (>=1.2.0,<2.0.0)",
     "httpx (>=0.28.1,<0.29.0)"
 ]
+
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.8"
