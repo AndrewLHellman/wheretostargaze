@@ -7,14 +7,33 @@ import { useEffect, useState } from 'react'
 export default function HomePage() {
   const [showButton, setShowButton] = useState(false)
   const [canScroll, setCanScroll] = useState(false)
+  const [skipAnimation, setSkipAnimation] = useState(false)
 
   useEffect(() => {
     // Show button after animation completes (15 seconds) when text is in final position
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setShowButton(true)
       setCanScroll(true)
     }, 15000)
-  }, [])
+
+    // Listen for spacebar to skip animation
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !skipAnimation) {
+        e.preventDefault()
+        setSkipAnimation(true)
+        setShowButton(true)
+        setCanScroll(true)
+        clearTimeout(timer)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('keydown', handleKeyPress)
+    }
+  }, [skipAnimation])
 
   return (
     <div className={`min-h-screen bg-[#1f2230] ${!canScroll ? 'overflow-hidden h-screen' : ''}`}>
@@ -25,7 +44,7 @@ export default function HomePage() {
       <div className='min-h-screen relative z-10'>
         {/* Star Wars scroll container */}
         <div className='crawl-container absolute inset-0 flex items-center justify-center overflow-hidden'>
-          <div className='crawl-text'>
+          <div className={`crawl-text ${skipAnimation ? 'skip-animation' : ''}`}>
             <div className='text-yellow-300 text-xl leading-relaxed max-w-3xl mx-auto space-y-12 px-8'>
               <p className='text-4xl italic'>In a galaxy far, far away...</p>
               <p className='text-5xl font-semibold'>Wait, I can't see the galaxy!</p>
@@ -153,6 +172,12 @@ export default function HomePage() {
         .crawl-text {
           transform-origin: 50% 100%;
           animation: crawl 15s linear forwards;
+        }
+
+        .crawl-text.skip-animation {
+          animation: none;
+          transform: rotateX(15deg) translateY(-50vh);
+          opacity: 1;
         }
 
         @keyframes crawl {

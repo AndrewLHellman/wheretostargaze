@@ -17,6 +17,7 @@ import traceback
 import logging
 import asyncio
 from datetime import datetime
+from services.tree_density import load_tree_density_data, get_tree_density_scores_batch
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,6 +43,8 @@ app.add_middleware(
 async def startup_event():
     logger.info("Loading light pollution data...")
     load_light_pollution_data()
+    logger.info("Loading tree density data...")
+    load_tree_density_data()
 
 @app.post("/api/spots", response_model=SpotResponse)
 async def get_stargazing_spots(request: SpotRequest):
@@ -62,6 +65,7 @@ async def get_stargazing_spots(request: SpotRequest):
             for lat, lon in grid_points
         ]
         pollution_scores = await asyncio.gather(*pollution_tasks)
+        tree_scores = await get_tree_density_scores_batch(grid_points)
 
         cloud_covers = await get_cloud_cover_for_area(
             grid_points,
@@ -80,6 +84,7 @@ async def get_stargazing_spots(request: SpotRequest):
             grid_points,
             pollution_scores,
             cloud_covers,
+            tree_scores,
             max_spots=10
         )
 
@@ -90,6 +95,7 @@ async def get_stargazing_spots(request: SpotRequest):
                 lon=spot['lon'],
                 pollution_score=spot['pollution_score'],
                 cloud_cover=spot.get('cloud_cover'),
+                tree_density_score=spot.get('tree_density_score'),
                 stargazing_score=spot.get('stargazing_score'),
                 place_type=spot['place_type'],
                 rating=spot.get('rating'),
@@ -139,6 +145,30 @@ async def get_astronomy(latitude: float, longitude: float, date: str = None, tim
 async def debug_dataset():
     """Get information about the light pollution dataset"""
     return get_dataset_info()
+
+@app.get("/debug/tree-density")
+async def debug_tree_density(lat: float = 38.9634, lon: float = -92.3293):
+    """Test tree density lookup for a specific location"""
+    try:
+        from services.tree_density import get_tree_density_score, _tree_dataset_stats
+        
+        score = await get_tree_density_score(lat, lon)
+        
+        return {
+            "location": {"lat": lat, "lon": lon},
+            "tree_density_score": score,
+            "interpretation": {
+                "score": score,
+                "description": "0=no trees, 0.3=open, 0.6=moderate, 1.0=dense forest"
+            },
+            "dataset_info": _tree_dataset_stats if _tree_dataset_stats else {"status": "not_loaded"}
+        }
+    except Exception as e:
+        logger.error(f"Error testing tree density: {e}")
+        return {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
 
 @app.get("/debug/test-location")
 async def debug_test_location(lat: float = 38.9634, lon: float = -92.3293):

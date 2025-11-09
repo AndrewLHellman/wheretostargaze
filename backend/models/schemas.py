@@ -20,6 +20,7 @@ class RecommendedSpot(BaseModel):
     lon: float
     pollution_score: float
     cloud_cover: Optional[float] = None
+    tree_density_score: Optional[float] = None
     stargazing_score: Optional[float] = None
     place_type: str
     rating: Optional[float] = None

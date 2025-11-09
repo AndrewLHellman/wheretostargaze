@@ -86,7 +86,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
     setLoading(true)
     try {
       console.log('submit user location', userLocation)
-      const response = await fetch('http://localhost:8000/api/spots', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/spots`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,6 +100,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
 
       const data: SpotResponse = await response.json()
       onResponse(data)
+
     } catch (error) {
       console.error('Failed to fetch spots:', error)
     } finally {

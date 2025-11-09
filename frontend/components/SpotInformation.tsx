@@ -17,15 +17,21 @@ export default function SpotInformation({ spot, onClose }: SpotInformationProps)
   const [celestialBodies, setCelestialBodies] = useState<Record<string, CelestialBody>>({})
   const [loading, setLoading] = useState(true)
 
+  // Debug: Log spot data to check cloud_cover
+  useEffect(() => {
+    console.log('SpotInformation received spot:', spot)
+    console.log('Cloud cover value:', spot.cloud_cover)
+  }, [spot])
+
   useEffect(() => {
     const fetchAstronomy = async () => {
       try {
         const now = new Date()
         const date = now.toISOString().split('T')[0]
         const time = "20:00:00" // 8 PM for stargazing
-        
+
         const response = await fetch(
-          `http://localhost:8000/api/astronomy?latitude=${spot.lat}&longitude=${spot.lon}&date=${date}&time=${time}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/astronomy?latitude=${spot.lat}&longitude=${spot.lon}&date=${date}&time=${time}`
         )
         const data = await response.json()
         setCelestialBodies(data.celestial_bodies || {})
@@ -44,7 +50,7 @@ export default function SpotInformation({ spot, onClose }: SpotInformationProps)
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-xl font-bold text-white">{spot.name}</h3>
-        <button 
+        <button
           onClick={onClose}
           className="text-gray-400 hover:text-white transition-colors"
           aria-label="Close"
@@ -90,6 +96,34 @@ export default function SpotInformation({ spot, onClose }: SpotInformationProps)
           <p className="text-xs text-gray-400 mt-1">Lower is better for stargazing</p>
         </div>
 
+        {/* Tree Density Score */}
+        {spot.tree_density_score !== undefined && spot.tree_density_score !== null && (
+          <div className="mt-4 p-3 bg-green-900/30 rounded-lg border border-green-500/20">
+            <p className="text-xs text-gray-400 mb-1">Tree Density Score</p>
+            <p className="text-2xl font-bold text-green-400">
+              {spot.tree_density_score.toFixed(2)}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {spot.tree_density_score < 0.3 ? 'Open sky' : spot.tree_density_score < 0.6 ? 'Moderate cover' : 'Dense forest'}
+            </p>
+          </div>
+        )}
+
+        {/* Cloud Coverage Score */}
+        <div className="mt-4 p-3 bg-blue-900/30 rounded-lg border border-blue-500/20">
+          <p className="text-xs text-gray-400 mb-1">Cloud Coverage</p>
+          <p className="text-2xl font-bold text-blue-400">
+            {spot.cloud_cover !== undefined && spot.cloud_cover !== null 
+              ? `${(spot.cloud_cover * 100).toFixed(0)}%` 
+              : 'N/A'}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            {spot.cloud_cover !== undefined && spot.cloud_cover !== null
+              ? (spot.cloud_cover < 0.3 ? 'Clear skies' : spot.cloud_cover < 0.6 ? 'Partly cloudy' : 'Mostly cloudy')
+              : 'Data not available'}
+          </p>
+        </div>
+
         {/* Coordinates */}
         <div className="mt-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
           <p className="text-xs text-gray-400 mb-1">Coordinates</p>
@@ -104,7 +138,7 @@ export default function SpotInformation({ spot, onClose }: SpotInformationProps)
             <Telescope size={18} className="text-indigo-400" />
             <p className="text-xs text-gray-400">Visible Tonight (8 PM)</p>
           </div>
-          
+
           {loading ? (
             <p className="text-sm text-gray-400">Loading celestial data...</p>
           ) : Object.keys(celestialBodies).length > 0 ? (
