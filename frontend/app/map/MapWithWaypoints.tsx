@@ -16,18 +16,19 @@ interface Props {
   data: SpotResponse | null
 }
 
+function RecenterMap({ latlng }: { latlng: [number, number] }) {
+  const map = useMap()
+  useEffect(() => {
+    if (!latlng) return
+    console.log('re-centering!', latlng)
+    map.flyTo(latlng, map.getZoom())
+  }, [latlng && latlng.join(',')])
+  return null
+}
+
 export default function MapWithWaypoints({ data }: Props) {
   const { location: userLocation, onLocationChange } = useSharedUserLocation()
   const [selectedSpot, setSelectedSpot] = useState<RecommendedSpot | null>(null)
-
-  function RecenterMap({ latlng }: { latlng: [number, number] }) {
-    const map = useMap()
-    useEffect(() => {
-      if (!latlng) return
-      map.flyTo(latlng, map.getZoom())
-    }, [latlng && latlng.join(',')])
-    return null
-  }
 
   function ClickHandler() {
     useMapEvents({
