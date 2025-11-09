@@ -1,9 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import sampleResponse from '@/app/map/response.json'
 import { SpotResponse } from '@/lib/types'
-import { useUserLocation } from '@/lib/useUserLocation'
 import { useSharedUserLocation } from './UserLocationProvider'
 
 type LayerKey = 'cloudCoverage' | 'treeDensity' | 'lightPollution'
@@ -38,11 +36,9 @@ interface SettingsMenuProps {
 export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMenuProps) {
   const [open, setOpen] = useState<boolean>(sidebar)
   const [prefs, setPrefs] = useState<MapPrefs>(DEFAULT_PREFS)
-  const [logoLoaded, setLogoLoaded] = useState<boolean>(true)
   const [loading, setLoading] = useState<boolean>(false)
 
   const { location: userLocation } = useSharedUserLocation()
-  console.log('cur loc', userLocation)
 
   useEffect(() => {
     try {
@@ -52,9 +48,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
         const validLayers: Record<LayerKey, LayerPref> = {} as any
         const validKeys: LayerKey[] = ['cloudCoverage', 'treeDensity', 'lightPollution']
         validKeys.forEach(key => {
-          if (loaded.layers?.[key]) {
-            validLayers[key] = loaded.layers[key]
-          }
+          if (loaded.layers?.[key]) validLayers[key] = loaded.layers[key]
         })
         setPrefs({
           ...DEFAULT_PREFS,
@@ -80,27 +74,41 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
     save(DEFAULT_PREFS)
   }
 
-  async function submitSettings() {
-    //onResponse(sampleResponse as unknown as SpotResponse)
+  /** Wait only for the heatmap tiles to finish (HeatmapLayer dispatches `heatmap:ready`). */
+  function waitForHeatmapReady(timeoutMs = 8000) {
+    return new Promise<void>(resolve => {
+      let done = false
+      const finish = () => {
+        if (done) return
+        done = true
+        window.removeEventListener('heatmap:ready', finish as any)
+        resolve()
+      }
+      window.addEventListener('heatmap:ready', finish, { once: true })
+      setTimeout(finish, timeoutMs) // fallback so UI doesn't get stuck
+    })
+  }
 
+  async function submitSettings() {
     setLoading(true)
     try {
-      console.log('submit user location', userLocation)
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/spots`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           latitude: userLocation?.lat,
           longitude: userLocation?.lng,
           radius_miles: prefs.travelDistance,
+          // searchType: prefs.searchType,
+          // driveTime: prefs.driveTime,
         }),
       })
 
       const data: SpotResponse = await response.json()
       onResponse(data)
 
+      // ⏳ wait only for the HEATMAP to finish drawing
+      await waitForHeatmapReady()
     } catch (error) {
       console.error('Failed to fetch spots:', error)
     } finally {
@@ -108,8 +116,13 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
     }
   }
 
-  const btnActive = sidebar ? 'bg-gray-700 text-white' : 'bg-gray-100'
-  const btnSecondary = sidebar ? 'bg-gray-800 text-gray-200' : 'bg-gray-100'
+  // button base styles with hover/active/focus “haptics”
+  const btnBase =
+    'px-3 py-2 rounded text-sm font-medium transition-all ' +
+    'hover:brightness-110 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-purple-500/60'
+
+  const segOn  = 'bg-purple-600 text-white'
+  const segOff = 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
 
   const containerBase = sidebar
     ? 'h-full overflow-auto p-2 flex flex-col bg-gray-900 text-white'
@@ -121,7 +134,10 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
         <button
           aria-label='Open preferences'
           onClick={() => setOpen(v => !v)}
-          className='p-2 bg-white/90 dark:bg-black/80 rounded-lg shadow-md border border-gray-200 hover:opacity-90'
+          className={
+            btnBase +
+            ' bg-white/90 dark:bg-black/80 border border-gray-200 text-gray-800 dark:text-gray-100 p-2 rounded-lg'
+          }
         >
           {/* gear icon */}
           <svg width='20' height='20' viewBox='0 0 24 24' fill='none'>
@@ -144,21 +160,13 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
           {/* Search Type Toggle */}
           <div className='mb-4 flex gap-2'>
             <button
-              className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
-                prefs.searchType === 'distance'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-              }`}
+              className={`${btnBase} flex-1 ${prefs.searchType === 'distance' ? segOn : segOff}`}
               onClick={() => save({ ...prefs, searchType: 'distance' })}
             >
               Distance
             </button>
             <button
-              className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
-                prefs.searchType === 'driveTime'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-              }`}
+              className={`${btnBase} flex-1 ${prefs.searchType === 'driveTime' ? segOn : segOff}`}
               onClick={() => save({ ...prefs, searchType: 'driveTime' })}
             >
               Drive Time
@@ -175,19 +183,20 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
                 value={prefs.travelDistance}
                 onChange={e => save({ ...prefs, travelDistance: Number(e.target.value) })}
                 disabled={prefs.searchType !== 'distance'}
+                className='accent-purple-600'
               />
               <div className='text-sm w-12 text-right'>{prefs.travelDistance}</div>
             </div>
             <div className='flex gap-2 items-center mt-2'>
               <button
-                className={`px-2 py-1 rounded text-sm ${prefs.units === 'mi' ? btnActive : ''}`}
+                className={`${btnBase} px-2 py-1 ${prefs.units === 'mi' ? 'bg-purple-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-300'}`}
                 onClick={() => save({ ...prefs, units: 'mi' })}
                 disabled={prefs.searchType !== 'distance'}
               >
                 miles
               </button>
               <button
-                className={`px-2 py-1 rounded text-sm ${prefs.units === 'km' ? btnActive : ''}`}
+                className={`${btnBase} px-2 py-1 ${prefs.units === 'km' ? 'bg-purple-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-300'}`}
                 onClick={() => save({ ...prefs, units: 'km' })}
                 disabled={prefs.searchType !== 'distance'}
               >
@@ -207,6 +216,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
                 value={prefs.driveTime}
                 onChange={e => save({ ...prefs, driveTime: Number(e.target.value) })}
                 disabled={prefs.searchType !== 'driveTime'}
+                className='accent-purple-600'
               />
               <div className='text-sm w-12 text-right'>{prefs.driveTime}</div>
             </div>
@@ -230,6 +240,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
                         type='checkbox'
                         checked={layer.enabled}
                         onChange={e => updateLayer(key, { enabled: e.target.checked })}
+                        className='accent-purple-600'
                       />
                       <span className='text-sm'>{label}</span>
                     </div>
@@ -241,6 +252,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
                     max={100}
                     value={layer.weight}
                     onChange={e => updateLayer(key, { weight: Number(e.target.value) })}
+                    className='accent-purple-600'
                   />
                 </div>
               )
@@ -248,15 +260,56 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
           </div>
 
           <div className='flex gap-2 justify-between'>
-            <button onClick={submitSettings} className={`px-3 py-1 rounded text-sm ${btnSecondary}`}>
-              Submit
+            {/* Submit with spinner + disabled while loading */}
+            <button
+              onClick={submitSettings}
+              disabled={loading}
+              className={
+                btnBase +
+                ' ' +
+                (loading
+                  ? 'bg-purple-600/80 text-white cursor-wait'
+                  : 'bg-gray-800 text-gray-100 hover:bg-gray-700') +
+                ' min-w-24 flex items-center justify-center gap-2'
+              }
+            >
+              {loading ? (
+                <>
+                  <Spinner />
+                  <span>Finding spots…</span>
+                </>
+              ) : (
+                'Submit'
+              )}
             </button>
-            <button onClick={resetDefaults} className={`px-3 py-1 rounded text-sm ${btnSecondary}`}>
+
+            <button
+              onClick={resetDefaults}
+              className={btnBase + ' bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100'}
+            >
               Reset
             </button>
           </div>
+
+          {/* --- Celestial Events trigger (COMMENTED OUT) ---
+          <div className="mt-3">
+            <button className={btnBase + ' bg-indigo-600 text-white w-full'}>
+              📅 Celestial Events
+            </button>
+          </div>
+          */}
         </div>
       )}
     </div>
+  )
+}
+
+/** tiny loading spinner */
+function Spinner() {
+  return (
+    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+      <path className="opacity-75" d="M4 12a8 8 0 0 1 8-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
   )
 }
