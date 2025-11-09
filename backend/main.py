@@ -82,8 +82,8 @@ async def get_stargazing_spots(request: SpotRequest):
         logger.info(f"Cloud cover: {api_calls} API calls for {len(grid_points)} points")
 
         heatmap = [
-            HeatmapPoint(lat=lat, lon=lon, pollution_score=score, cloud_cover=cloud, stargazing_score=calculate_stargazing_score(score, cloud))
-            for (lat, lon), score, cloud in zip(grid_points, pollution_scores, cloud_covers)
+            HeatmapPoint(lat=lat, lon=lon, pollution_score=score, cloud_cover=cloud, tree_density=tree, stargazing_score=calculate_stargazing_score(score, cloud))
+            for (lat, lon), score, cloud, tree in zip(grid_points, pollution_scores, cloud_covers, tree_scores)
         ]
 
         best_spots = await find_best_stargazing_spots(
@@ -157,9 +157,9 @@ async def debug_tree_density(lat: float = 38.9634, lon: float = -92.3293):
     """Test tree density lookup for a specific location"""
     try:
         from services.tree_density import get_tree_density_score, _tree_dataset_stats
-        
+
         score = await get_tree_density_score(lat, lon)
-        
+
         return {
             "location": {"lat": lat, "lon": lon},
             "tree_density_score": score,
@@ -212,4 +212,3 @@ async def add_custom_spot(body: CustomSpotBody):
         'lon': body.lon
     })
     return locations
-

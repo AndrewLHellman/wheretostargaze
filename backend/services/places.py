@@ -55,11 +55,11 @@ def calculate_stargazing_score(
     if tree_density is not None:
         tree_quality = 1.0 - tree_density
     else:
-        tree_quality = 0.0  # Assume no tree coverage
+        tree_quality = 0.5  # Neutral if unknown (was 0.0)
 
     # Weighted combination
     combined_score = (
-        (pollution_quality * pollution_weight) + 
+        (pollution_quality * pollution_weight) +
         (cloud_quality * cloud_weight) +
         (tree_quality * tree_weight)
     )
@@ -93,12 +93,11 @@ async def search_nearby_places(lat: float, lon: float, radius_meters: int = 5000
                 data = response.json()
 
                 if data.get('status') == 'OK':
-                    for place in data.get('results', [])[:10]:  # Limit to 5 per type
+                    for place in data.get('results', [])[:10]:
                         place_name = place.get('name', '')
 
                         if not is_stargazing_friendly(place_name, place_type):
                             continue
-
 
                         places.append({
                             'name': place_name,
@@ -153,7 +152,7 @@ async def find_best_stargazing_spots(
 
     priority_types = ['campground', 'park', 'point_of_interest']
 
-    for (lat, lon), pollution, cloud, tree_density, combined_score in sorted_points[:20]:
+    for (lat, lon), pollution, cloud, tree_density, combined_score in sorted_points[:50]:
         places = await search_nearby_places(lat, lon, radius_meters=5000)
 
         def place_priority(place):
@@ -182,31 +181,4 @@ async def find_best_stargazing_spots(
             if len(recommended_spots) >= max_spots:
                 return recommended_spots
 
-    grid_index = 0
-    while len(recommended_spots) < max_spots and grid_index < len(sorted_points):
-        (lat, lon), pollution, cloud, tree_density, combined_score = sorted_points[grid_index]
-
-        is_near_existing = any(
-            abs(spot['lat'] - lat) < 0.05 and abs(spot['lon'] - lon) < 0.05
-            for spot in recommended_spots
-        )
-
-        if not is_near_existing:
-            from services.light_pollution import get_quality_description
-            recommended_spots.append({
-                'name': f'Dark Sky Viewpoint {len(recommended_spots) + 1}',
-                'lat': lat,
-                'lon': lon,
-                'place_type': 'dark_site',
-                'rating': None,
-                'address': get_quality_description(pollution),
-                'place_id': None,
-                'pollution_score': pollution,
-                'cloud_cover': cloud,
-                'tree_density_score': tree_density,
-                'stargazing_score': combined_score
-            })
-
-        grid_index += 1
-
-    return recommended_spots[:max_spots]
+    return recommended_spots

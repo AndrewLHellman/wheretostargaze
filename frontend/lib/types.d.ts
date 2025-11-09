@@ -7,7 +7,8 @@ export interface HeatmapPoint {
   lat: number
   lon: number
   pollution_score: number
-  cloud_cover: number
+  cloud_cover?: number
+  tree_density_score?: number
   stargazing_score: number
 }
 
