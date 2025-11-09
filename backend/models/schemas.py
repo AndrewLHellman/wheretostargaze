@@ -7,11 +7,12 @@ class SpotRequest(BaseModel):
     drive_time_minutes: Optional[int] = Field(None, ge=5, le=120)
     radius_miles: Optional[float] = Field(None, ge=1, le=120)
 
-class LightPollutionPoint(BaseModel):
+class HeatmapPoint(BaseModel):
     lat: float
     lon: float
     pollution_score: float
     cloud_cover: Optional[float] = None
+    stargazing_score: float
 
 class RecommendedSpot(BaseModel):
     name: str
@@ -27,6 +28,6 @@ class RecommendedSpot(BaseModel):
     google_place_id: Optional[str] = None
 
 class SpotResponse(BaseModel):
-    heatmap: List[LightPollutionPoint]
+    heatmap: List[HeatmapPoint]
     recommended_spots: List[RecommendedSpot]
     search_area: Optional[dict] = None

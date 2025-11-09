@@ -3,10 +3,10 @@
 import { useMap } from 'react-leaflet'
 import { useEffect } from 'react'
 import L from 'leaflet'
-import { LightPollutionPoint } from '@/lib/types'
+import { HeatmapPoint } from '@/lib/types'
 
 interface LeafletHeatOverlayProps {
-  points: LightPollutionPoint[]
+  points: HeatmapPoint[]
   maxDistance?: number
   blur?: number
   opacity?: number
@@ -14,7 +14,7 @@ interface LeafletHeatOverlayProps {
 }
 
 /** Simple inverse distance weighting */
-function interpolateIntensity(lat: number, lon: number, points: LightPollutionPoint[], maxDistance = 0.05) {
+function interpolateIntensity(lat: number, lon: number, points: HeatmapPoint[], maxDistance = 0.05) {
   let numerator = 0
   let denominator = 0
   const epsilon = 0.00001
@@ -23,7 +23,7 @@ function interpolateIntensity(lat: number, lon: number, points: LightPollutionPo
     const dist = Math.sqrt((p.lat - lat) ** 2 + (p.lon - lon) ** 2)
     if (dist > maxDistance) return
     const weight = 1 / (dist + epsilon)
-    numerator += weight * p.pollution_score
+    numerator += weight * p.stargazing_score
     denominator += weight
   })
 
@@ -91,7 +91,7 @@ export default function HeatmapLayer({
         const nw = bounds.getNorthWest()
         const se = bounds.getSouthEast()
 
-        const maxPollution = Math.max(...points.map(p => p.pollution_score))
+        const maxScore = Math.max(...points.map(p => p.stargazing_score))
         const image = ctx.createImageData(size.x, size.y)
         const data = image.data
 
@@ -109,7 +109,7 @@ export default function HeatmapLayer({
               intensity = 0 // fully transparent
             } else {
               intensity = interpolateIntensity(lat, lon, points, maxDistance)
-              intensity = Math.min(intensity / maxPollution, 1)
+              intensity = Math.min(intensity / maxScore, 1)
             }
             const color = getColorFromGradient(intensity, gradient, opacity)
 

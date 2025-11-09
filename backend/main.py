@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from models.schemas import SpotRequest, SpotResponse, LightPollutionPoint, RecommendedSpot
+from models.schemas import HeatmapPoint, SpotRequest, SpotResponse, RecommendedSpot
 from services.isochrone import get_search_area, generate_grid_points, polygon_to_geojson
 from services.light_pollution import (
     get_light_pollution_score,
@@ -8,7 +8,7 @@ from services.light_pollution import (
     load_light_pollution_data,
     get_dataset_info
 )
-from services.places import find_best_stargazing_spots
+from services.places import calculate_stargazing_score, find_best_stargazing_spots
 from services.cloud_cover import get_cloud_cover, get_cloud_quality_score
 from services.cloud_cover_strategy import get_cloud_cover_for_area, estimate_api_calls
 from cache import get_cache_stats
@@ -76,7 +76,7 @@ async def get_stargazing_spots(request: SpotRequest):
         logger.info(f"Cloud cover: {api_calls} API calls for {len(grid_points)} points")
 
         heatmap = [
-            LightPollutionPoint(lat=lat, lon=lon, pollution_score=score, cloud_cover=cloud)
+            HeatmapPoint(lat=lat, lon=lon, pollution_score=score, cloud_cover=cloud, stargazing_score=calculate_stargazing_score(score, cloud))
             for (lat, lon), score, cloud in zip(grid_points, pollution_scores, cloud_covers)
         ]
 
