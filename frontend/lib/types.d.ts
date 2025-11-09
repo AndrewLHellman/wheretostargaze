@@ -3,10 +3,12 @@ declare module 'react-leaflet-heatmap-layer'
 
 export type Point = { lat: number; lng: number }
 
-export interface LightPollutionPoint {
+export interface HeatmapPoint {
   lat: number
   lon: number
   pollution_score: number
+  cloud_cover: number
+  stargazing_score: number
 }
 
 export interface RecommendedSpot {
@@ -14,6 +16,8 @@ export interface RecommendedSpot {
   lat: number
   lon: number
   pollution_score: number
+  tree_density_score?: number
+  cloud_cover?: number
   place_type: string
   rating?: number
   address?: string
