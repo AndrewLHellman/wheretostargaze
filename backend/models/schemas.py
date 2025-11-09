@@ -12,6 +12,7 @@ class HeatmapPoint(BaseModel):
     lon: float
     pollution_score: float
     cloud_cover: Optional[float] = None
+    tree_density: Optional[float] = None
     stargazing_score: float
 
 class RecommendedSpot(BaseModel):
