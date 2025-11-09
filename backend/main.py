@@ -251,4 +251,4 @@ async def add_custom_spot(body: CustomSpotBody):
 # debug delete
 @app.delete("/api/spots/custom")
 async def delete_custom_spots():
-    locations.remove()
+    return locations.remove()
