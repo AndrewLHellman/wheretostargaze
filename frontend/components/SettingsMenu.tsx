@@ -108,9 +108,9 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
               }),
           // searchType: prefs.searchType,
           // driveTime: prefs.driveTime,
-          pollution_weight: prefs.layers.lightPollution.weight,
-          cloud_weight: prefs.layers.cloudCoverage.weight,
-          tree_weight: prefs.layers.treeDensity.weight
+          pollution_weight: prefs.layers.lightPollution.enabled ? prefs.layers.lightPollution.weight : 0,
+          cloud_weight: prefs.layers.cloudCoverage.enabled ? prefs.layers.cloudCoverage.weight : 0,
+          tree_weight: prefs.layers.treeDensity.enabled ? prefs.layers.treeDensity.weight : 0
         }),
       })
 
