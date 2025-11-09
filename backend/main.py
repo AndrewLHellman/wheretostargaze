@@ -202,7 +202,7 @@ async def debug_test_location(lat: float = 38.9634, lon: float = -92.3293):
 class CustomSpotBody(BaseModel):
     lat: float
     lon: float
-    name: float
+    name: str
 
 @app.post("/api/spots/custom")
 async def add_custom_spot(body: CustomSpotBody):
