@@ -5,6 +5,9 @@ from shapely.ops import transform
 import math
 from config import settings
 from cache import cache_response
+import logging
+
+logger = logging.getLogger(__name__)
 
 @cache_response(ttl_seconds=2592000, prefix="isochrone")
 async def get_isochrone_polygon(lat: float, lon: float, drive_time_minutes: int) -> dict:
@@ -20,15 +23,30 @@ async def get_isochrone_polygon(lat: float, lon: float, drive_time_minutes: int)
         "range": [drive_time_minutes * 60],
         "range_type": "time"
     }
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json=body, headers=headers, timeout=30.0)
+            response.raise_for_status()
+            data = response.json()
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=body, headers=headers, timeout=30.0)
-        response.raise_for_status()
-        data = response.json()
+        coords = data["features"][0]["geometry"]["coordinates"][0]
 
-    coords = data["features"][0]["geometry"]["coordinates"][0]
+        return {"coordinates": coords}
+    except Exception as e:
+        logger.error(f"Error getting isochrone, falling back to point polygon: {e}")
+        import traceback
+        traceback.print_exc()
 
-    return {"coordinates": coords}
+        offset = 0.0001  # ~11 meters
+        return {
+            "coordinates": [
+                [lon - offset, lat - offset],
+                [lon + offset, lat - offset],
+                [lon + offset, lat + offset],
+                [lon - offset, lat + offset],
+                [lon - offset, lat - offset]  # Close the polygon
+            ]
+        }
 
 def get_radius_polygon(lat: float, lon: float, radius_miles: float) -> Polygon:
     radius_degrees = radius_miles / 69.0
