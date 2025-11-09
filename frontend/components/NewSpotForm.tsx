@@ -1,4 +1,4 @@
-import { Button, Dialog, Spinner, TextField, VisuallyHidden } from '@radix-ui/themes'
+import { Spinner } from '@radix-ui/themes'
 import { FormEvent, useState } from 'react'
 import { useSharedUserLocation } from './UserLocationProvider'
 
@@ -8,23 +8,24 @@ const btnBase =
 
 const NewSpotForm: React.FC = () => {
   const [name, setName] = useState('')
-  const [value, setValue] = useState('')
   const [loading, setLoading] = useState(false)
-  const [open, setOpen] = useState(false)
 
   const { location: userLocation } = useSharedUserLocation()
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
     setLoading(true)
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/spots`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/spots/custom`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           lat: userLocation?.lat,
           lon: userLocation?.lng,
+          name: name,
         }),
       })
+      setName('')
     } catch (error) {
       console.error('Failed to fetch spots:', error)
     } finally {
@@ -36,7 +37,7 @@ const NewSpotForm: React.FC = () => {
     <form className='flex justify-between items-center gap-2' onSubmit={handleSubmit}>
       <input
         type='text'
-        placeholder='Side path'
+        placeholder='Name a spot...'
         className='
         w-full
         px-3 py-1
@@ -67,10 +68,10 @@ const NewSpotForm: React.FC = () => {
         {loading ? (
           <>
             <Spinner />
-            <span>Add Spot</span>
+            Add
           </>
         ) : (
-          'Submit'
+          'Add'
         )}
       </button>
     </form>
