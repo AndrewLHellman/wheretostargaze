@@ -129,7 +129,7 @@ async def get_stargazing_spots(request: SpotRequest):
                 tree_density_score=0,
                 stargazing_score=0,
                 place_type='custom_spot',
-                rating=0,
+                rating=None,
                 address='N/A',
                 google_place_id='N/A'
 
