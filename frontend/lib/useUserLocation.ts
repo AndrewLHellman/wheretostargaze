@@ -37,10 +37,8 @@ export function useUserLocation() {
   }, [])
 
   const onLocationChange = (loc: { lat: number; lng: number }) => {
-    console.log('on location change', loc)
     setLocation(loc)
   }
-  console.log('useLocation pos', location)
 
   return { location, error, onLocationChange }
 }
