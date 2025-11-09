@@ -269,34 +269,48 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
             })}
           </div>
 
-          <div className='flex gap-2 justify-between'>
-            {/* Submit with spinner + disabled while loading */}
-            <button
-              onClick={submitSettings}
-              disabled={loading}
-              className={
-                btnBase +
-                ' ' +
-                (loading ? 'bg-purple-600/80 text-white cursor-wait' : 'bg-gray-800 text-gray-100 hover:bg-gray-700') +
-                ' min-w-24 flex items-center justify-center gap-2'
-              }
-            >
-              {loading ? (
-                <>
-                  <Spinner />
-                  <span>Finding spots…</span>
-                </>
-              ) : (
-                'Submit'
-              )}
-            </button>
+          <div className='flex flex-col gap-2'>
+            {/* Location warning */}
+            {!userLocation && (
+              <div className='text-xs text-yellow-500 bg-yellow-500/10 p-2 rounded border border-yellow-500/30'>
+                ⚠️ Location access required. Please enable location in your browser.
+              </div>
+            )}
+            
+            <div className='flex gap-2 justify-between'>
+              {/* Submit with spinner + disabled while loading or no location */}
+              <button
+                onClick={submitSettings}
+                disabled={loading || !userLocation}
+                className={
+                  btnBase +
+                  ' ' +
+                  (loading
+                    ? 'bg-purple-600/80 text-white cursor-wait'
+                    : !userLocation
+                    ? 'bg-gray-500 text-gray-300 cursor-not-allowed opacity-50'
+                    : 'bg-gray-800 text-gray-100 hover:bg-gray-700') +
+                  ' min-w-24 flex items-center justify-center gap-2'
+                }
+                title={!userLocation ? 'Enable location access to submit' : ''}
+              >
+                {loading ? (
+                  <>
+                    <Spinner />
+                    <span>Finding spots…</span>
+                  </>
+                ) : (
+                  'Submit'
+                )}
+              </button>
 
-            <button
-              onClick={resetDefaults}
-              className={btnBase + ' bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100'}
-            >
-              Reset
-            </button>
+              <button
+                onClick={resetDefaults}
+                className={btnBase + ' bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100'}
+              >
+                Reset
+              </button>
+            </div>
           </div>
 
           {/* --- Celestial Events trigger (COMMENTED OUT) ---
