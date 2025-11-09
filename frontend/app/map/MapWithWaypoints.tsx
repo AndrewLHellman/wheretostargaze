@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import LucideMarker from './LucideMarker'
-import { FlagTriangleRight } from 'lucide-react'
+import { Telescope } from 'lucide-react'
 import { SpotResponse, RecommendedSpot } from '@/lib/types'
 import UserMarker from '@/components/UserMarker'
 import { useUserLocation } from '@/lib/useUserLocation'
@@ -72,9 +72,9 @@ export default function MapWithWaypoints({ data }: Props) {
             key={i}
             position={[spot.lat, spot.lon]}
             size={28}
-            color='#2563eb'
+            color='#ffffffff'
             align='bottom'
-            LucideIcon={FlagTriangleRight}
+            LucideIcon={Telescope}
             onRightClick={() => alert(`Right-clicked: ${spot.name}`)}
             onClick={() => setSelectedSpot(spot)}
           >

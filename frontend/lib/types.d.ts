@@ -18,6 +18,7 @@ export interface RecommendedSpot {
   pollution_score: number
   tree_density_score?: number
   cloud_cover?: number
+  stargazing_score: number
   place_type: string
   rating?: number
   address?: string
