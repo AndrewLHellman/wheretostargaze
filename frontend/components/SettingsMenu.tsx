@@ -22,8 +22,8 @@ const DEFAULT_PREFS: MapPrefs = {
   travelDistance: 50,
   units: 'mi',
   layers: {
-    cloudCoverage: { enabled: true, weight: 80 },
-    treeDensity: { enabled: true, weight: 40 },
+    cloudCoverage: { enabled: true, weight: 50 },
+    treeDensity: { enabled: true, weight: 50 },
     lightPollution: { enabled: true, weight: 100 },
   },
 }
