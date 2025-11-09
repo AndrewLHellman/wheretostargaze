@@ -4,6 +4,7 @@ from pathlib import Path
 
 _project_root = Path(__file__).parent.parent
 _default_data_path = _project_root / "data" / "light_pollution" / "viirs_2024.tif"
+_tree_data_path = _project_root / "data" / "tree_density" / "TreeMap2022_CONUS_ALSTK.tif"
 
 class Settings(BaseSettings):
     google_places_api_key: str = "dummy_key_for_testing"
@@ -13,7 +14,7 @@ class Settings(BaseSettings):
     openweather_api_key: Optional[str] = None
     astronomy_id: Optional[str] = None
     astronomy_secret: Optional[str] = None
-
+    tree_density_data_path: str = str(_tree_data_path)
     model_config = {
         "env_file": ".env"
     }
