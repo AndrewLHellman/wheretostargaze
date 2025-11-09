@@ -9,7 +9,7 @@ and live cloud coverage from OpenWeather to find you the best places to stargaze
 For each suggested location, you can find visible planets, constellations, and other cool views. If you know a spot that you'd like to share,
 you can add it for everyone to see!
 
-Always know a spot with [wheretostargaze.us](wheretostargaze.us)!
+Always know a spot with [wheretostargaze.us](https://www.wheretostargaze.us)!
 
 #### Tech Stack
 
