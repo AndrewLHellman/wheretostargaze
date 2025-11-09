@@ -211,5 +211,5 @@ async def add_custom_spot(body: CustomSpotBody):
         'lat': body.lat,
         'lon': body.lon
     })
-    return locations
+    return locations.all()
 
