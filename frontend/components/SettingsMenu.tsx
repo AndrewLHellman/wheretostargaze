@@ -108,6 +108,9 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
               }),
           // searchType: prefs.searchType,
           // driveTime: prefs.driveTime,
+          pollution_weight: prefs.layers.lightPollution.weight,
+          cloud_weight: prefs.layers.cloudCoverage.weight,
+          tree_weight: prefs.layers.treeDensity.weight
         }),
       })
 
@@ -276,7 +279,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
                 ⚠️ Location access required. Please enable location in your browser.
               </div>
             )}
-            
+
             <div className='flex gap-2 justify-between'>
               {/* Submit with spinner + disabled while loading or no location */}
               <button
