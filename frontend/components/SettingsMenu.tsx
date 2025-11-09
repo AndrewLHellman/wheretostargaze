@@ -54,8 +54,8 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
             validLayers[key] = loaded.layers[key]
           }
         })
-        setPrefs({ 
-          ...DEFAULT_PREFS, 
+        setPrefs({
+          ...DEFAULT_PREFS,
           ...loaded,
           layers: { ...DEFAULT_PREFS.layers, ...validLayers }
         })
@@ -83,7 +83,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
 
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:8000/api/spots', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/spots`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
 
       const data: SpotResponse = await response.json()
       onResponse(data)
-      
+
     } catch (error) {
       console.error('Failed to fetch spots:', error)
     } finally {
