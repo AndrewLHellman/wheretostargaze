@@ -3,6 +3,7 @@ from typing import Optional
 from cache import cache_response
 from config import settings
 import rasterio
+from rasterio.session import AWSSession
 from rasterio.transform import rowcol
 from rasterio.warp import transform_bounds
 import numpy as np
@@ -13,57 +14,32 @@ _light_pollution_dataset = None
 _dataset_stats = None
 
 def load_light_pollution_data():
-    """Load VIIRS light pollution raster data with diagnostics"""
-    global _light_pollution_dataset, _dataset_stats
+    global _light_pollution_dataset
 
     data_path = settings.light_pollution_data_path
 
     try:
-        import os
-        if not os.path.exists(data_path):
-            logger.error(f"❌ Light pollution data not found at {data_path}")
-            logger.warning("Using simplified distance-based model")
-            return None
+        if data_path.startswith('http'):
+            logger.info(f"Loading data from S3: {data_path}")
 
-        _light_pollution_dataset = rasterio.open(data_path)
+            _light_pollution_dataset = rasterio.open(data_path)
 
-        # Collect dataset statistics for debugging
-        _dataset_stats = {
-            'path': data_path,
-            'size': f"{_light_pollution_dataset.width}x{_light_pollution_dataset.height}",
-            'crs': str(_light_pollution_dataset.crs),
-            'bounds': _light_pollution_dataset.bounds,
-            'nodata': _light_pollution_dataset.nodata,
-            'dtype': _light_pollution_dataset.dtypes[0],
-            'transform': str(_light_pollution_dataset.transform)
-        }
+            # aws_session = AWSSession(
+            #     aws_access_key_id=settings.aws_access_key_id,
+            #     aws_secret_access_key=settings.aws_secret_access_key
+            # )
+            # with rasterio.Env(aws_session):
+            #     _light_pollution_dataset = rasterio.open(data_path)
+        else:
+            _light_pollution_dataset = rasterio.open(data_path)
 
         logger.info(f"✓ Light pollution data loaded successfully")
-        logger.info(f"  Path: {data_path}")
-        logger.info(f"  Size: {_dataset_stats['size']}")
-        logger.info(f"  CRS: {_dataset_stats['crs']}")
-        logger.info(f"  Bounds: {_dataset_stats['bounds']}")
-        logger.info(f"  NoData: {_dataset_stats['nodata']}")
-
-        # Sample some data to verify it's readable
-        center_row = _light_pollution_dataset.height // 2
-        center_col = _light_pollution_dataset.width // 2
-        sample_window = ((center_row-5, center_row+5), (center_col-5, center_col+5))
-        sample_data = _light_pollution_dataset.read(1, window=sample_window)
-
-        valid_samples = sample_data[sample_data != _light_pollution_dataset.nodata]
-        if len(valid_samples) > 0:
-            logger.info(f"  Sample stats: min={np.min(valid_samples):.2f}, "
-                       f"max={np.max(valid_samples):.2f}, "
-                       f"mean={np.mean(valid_samples):.2f}")
-        else:
-            logger.warning("  ⚠ All sample values are NoData")
+        logger.info(f"  Source: {data_path}")
 
         return _light_pollution_dataset
 
     except Exception as e:
         logger.error(f"❌ Error loading light pollution data: {e}")
-        logger.warning("Using simplified distance-based model")
         import traceback
         traceback.print_exc()
         return None
