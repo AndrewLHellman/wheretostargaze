@@ -20,6 +20,7 @@ import logging
 import asyncio
 from datetime import datetime
 from services.tree_density import load_tree_density_data, get_tree_density_scores_batch
+from services.conversion_utils import relative_weight
 from tinydb import TinyDB, Query
 
 # Create (or open) a database file
@@ -90,8 +91,24 @@ async def get_stargazing_spots(request: SpotRequest):
         api_calls = estimate_api_calls(len(grid_points), "sparse")
         logger.info(f"Cloud cover: {api_calls} API calls for {len(grid_points)} points")
 
+        relative_pollution_weight = relative_weight(request.pollution_weight, request.cloud_weight, request.tree_weight)
+        relative_cloud_weight = relative_weight(request.cloud_weight, request.pollution_weight, request.tree_weight)
+        relative_tree_weight = relative_weight(request.tree_weight, request.pollution_weight, request.cloud_weight)
+
         heatmap = [
-            HeatmapPoint(lat=lat, lon=lon, pollution_score=score, cloud_cover=cloud, tree_density=tree, stargazing_score=calculate_stargazing_score(score, cloud))
+            HeatmapPoint(lat=lat,
+                         lon=lon,
+                         pollution_score=score,
+                         cloud_cover=cloud,
+                         tree_density=tree,
+                         stargazing_score=calculate_stargazing_score(
+                            score,
+                            cloud,
+                            tree,
+                            pollution_weight=relative_pollution_weight,
+                            cloud_weight=relative_cloud_weight,
+                            tree_weight=relative_tree_weight,
+                        ))
             for (lat, lon), score, cloud, tree in zip(grid_points, pollution_scores, cloud_covers, tree_scores)
         ]
 
@@ -100,9 +117,9 @@ async def get_stargazing_spots(request: SpotRequest):
             pollution_scores,
             cloud_covers,
             tree_scores,
-            pollution_weight=request.pollution_weight / max(sum(request.pollution_weight, request.cloud_weight, request.tree_weight), 1),
-            cloud_weight=request.cloud_weight / max(sum(request.pollution_weight, request.cloud_weight, request.tree_weight), 1),
-            tree_weight=request.tree_weight / max(sum(request.pollution_weight, request.cloud_weight, request.tree_weight), 1),
+            pollution_weight=relative_pollution_weight,
+            cloud_weight=relative_cloud_weight,
+            tree_weight=relative_tree_weight,
             max_spots=10
         )
 
