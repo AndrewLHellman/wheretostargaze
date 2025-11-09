@@ -29,9 +29,9 @@ export default function SpotInformation({ spot, onClose }: SpotInformationProps)
         const now = new Date()
         const date = now.toISOString().split('T')[0]
         const time = "20:00:00" // 8 PM for stargazing
-        
+
         const response = await fetch(
-          `http://localhost:8000/api/astronomy?latitude=${spot.lat}&longitude=${spot.lon}&date=${date}&time=${time}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/astronomy?latitude=${spot.lat}&longitude=${spot.lon}&date=${date}&time=${time}`
         )
         const data = await response.json()
         setCelestialBodies(data.celestial_bodies || {})
@@ -50,7 +50,7 @@ export default function SpotInformation({ spot, onClose }: SpotInformationProps)
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-xl font-bold text-white">{spot.name}</h3>
-        <button 
+        <button
           onClick={onClose}
           className="text-gray-400 hover:text-white transition-colors"
           aria-label="Close"
@@ -138,7 +138,7 @@ export default function SpotInformation({ spot, onClose }: SpotInformationProps)
             <Telescope size={18} className="text-indigo-400" />
             <p className="text-xs text-gray-400">Visible Tonight (8 PM)</p>
           </div>
-          
+
           {loading ? (
             <p className="text-sm text-gray-400">Loading celestial data...</p>
           ) : Object.keys(celestialBodies).length > 0 ? (
