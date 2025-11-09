@@ -5,7 +5,7 @@ import sampleResponse from '@/app/map/response.json'
 import { SpotResponse } from '@/lib/types'
 import { useUserLocation } from '@/lib/useUserLocation'
 
-type LayerKey = 'cloudCoverage' | 'treeDensity' | 'lightPollution' | 'accessibility'
+type LayerKey = 'cloudCoverage' | 'treeDensity' | 'lightPollution'
 type LayerPref = { enabled: boolean; weight: number }
 type MapPrefs = {
   searchType: 'distance' | 'driveTime'
@@ -26,7 +26,6 @@ const DEFAULT_PREFS: MapPrefs = {
     cloudCoverage: { enabled: true, weight: 80 },
     treeDensity: { enabled: true, weight: 40 },
     lightPollution: { enabled: true, weight: 100 },
-    accessibility: { enabled: false, weight: 30 },
   },
 }
 
@@ -48,7 +47,18 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) {
         const loaded = JSON.parse(raw)
-        setPrefs({ ...DEFAULT_PREFS, ...loaded })  // Merge with defaults
+        const validLayers: Record<LayerKey, LayerPref> = {} as any
+        const validKeys: LayerKey[] = ['cloudCoverage', 'treeDensity', 'lightPollution']
+        validKeys.forEach(key => {
+          if (loaded.layers?.[key]) {
+            validLayers[key] = loaded.layers[key]
+          }
+        })
+        setPrefs({ 
+          ...DEFAULT_PREFS, 
+          ...loaded,
+          layers: { ...DEFAULT_PREFS.layers, ...validLayers }
+        })
       }
     } catch {}
   }, [])
@@ -209,7 +219,6 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
                 cloudCoverage: 'Cloud Coverage',
                 treeDensity: 'Tree Density',
                 lightPollution: 'Light Pollution',
-                accessibility: 'Accessibility',
               }[key]
 
               return (
