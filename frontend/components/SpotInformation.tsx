@@ -17,6 +17,12 @@ export default function SpotInformation({ spot, onClose }: SpotInformationProps)
   const [celestialBodies, setCelestialBodies] = useState<Record<string, CelestialBody>>({})
   const [loading, setLoading] = useState(true)
 
+  // Debug: Log spot data to check cloud_cover
+  useEffect(() => {
+    console.log('SpotInformation received spot:', spot)
+    console.log('Cloud cover value:', spot.cloud_cover)
+  }, [spot])
+
   useEffect(() => {
     const fetchAstronomy = async () => {
       try {
@@ -88,6 +94,34 @@ export default function SpotInformation({ spot, onClose }: SpotInformationProps)
             {spot.pollution_score.toFixed(2)}
           </p>
           <p className="text-xs text-gray-400 mt-1">Lower is better for stargazing</p>
+        </div>
+
+        {/* Tree Density Score */}
+        {spot.tree_density_score !== undefined && spot.tree_density_score !== null && (
+          <div className="mt-4 p-3 bg-green-900/30 rounded-lg border border-green-500/20">
+            <p className="text-xs text-gray-400 mb-1">Tree Density Score</p>
+            <p className="text-2xl font-bold text-green-400">
+              {spot.tree_density_score.toFixed(2)}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {spot.tree_density_score < 0.3 ? 'Open sky' : spot.tree_density_score < 0.6 ? 'Moderate cover' : 'Dense forest'}
+            </p>
+          </div>
+        )}
+
+        {/* Cloud Coverage Score */}
+        <div className="mt-4 p-3 bg-blue-900/30 rounded-lg border border-blue-500/20">
+          <p className="text-xs text-gray-400 mb-1">Cloud Coverage</p>
+          <p className="text-2xl font-bold text-blue-400">
+            {spot.cloud_cover !== undefined && spot.cloud_cover !== null 
+              ? `${(spot.cloud_cover * 100).toFixed(0)}%` 
+              : 'N/A'}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            {spot.cloud_cover !== undefined && spot.cloud_cover !== null
+              ? (spot.cloud_cover < 0.3 ? 'Clear skies' : spot.cloud_cover < 0.6 ? 'Partly cloudy' : 'Mostly cloudy')
+              : 'Data not available'}
+          </p>
         </div>
 
         {/* Coordinates */}

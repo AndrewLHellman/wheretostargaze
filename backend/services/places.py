@@ -103,12 +103,15 @@ async def find_best_stargazing_spots(
     grid_points: List[Tuple[float, float]],
     pollution_scores: List[float],
     cloud_covers: Optional[List[Optional[float]]] = None,
+    tree_density_scores: Optional[List[float]] = None,
     max_spots: int = 10,
     pollution_weight: float = 0.7,
     cloud_weight: float = 0.3
 ) -> List[dict]:
     if cloud_covers is None:
         cloud_covers = [None] * len(grid_points)
+    if tree_density_scores is None:
+        tree_density_scores = [None] * len(grid_points)
 
     combined_scores = [
         calculate_stargazing_score(
@@ -121,8 +124,8 @@ async def find_best_stargazing_spots(
     ]
 
     sorted_points = sorted(
-        zip(grid_points, pollution_scores, cloud_covers, combined_scores),
-        key=lambda x: x[3],
+        zip(grid_points, pollution_scores, cloud_covers, tree_density_scores, combined_scores),
+        key=lambda x: x[4],
         reverse=True
     )
 
@@ -131,7 +134,7 @@ async def find_best_stargazing_spots(
 
     priority_types = ['campground', 'park', 'point_of_interest']
 
-    for (lat, lon), pollution, cloud, combined_score in sorted_points[:20]:
+    for (lat, lon), pollution, cloud, tree_density, combined_score in sorted_points[:20]:
         places = await search_nearby_places(lat, lon, radius_meters=5000)
 
         def place_priority(place):
@@ -153,6 +156,7 @@ async def find_best_stargazing_spots(
 
             place['pollution_score'] = pollution
             place['cloud_cover'] = cloud
+            place['tree_density_score'] = tree_density
             place['stargazing_score'] = combined_score
             recommended_spots.append(place)
 
@@ -161,7 +165,7 @@ async def find_best_stargazing_spots(
 
     grid_index = 0
     while len(recommended_spots) < max_spots and grid_index < len(sorted_points):
-        (lat, lon), pollution, cloud, combined_score = sorted_points[grid_index]
+        (lat, lon), pollution, cloud, tree_density, combined_score = sorted_points[grid_index]
 
         is_near_existing = any(
             abs(spot['lat'] - lat) < 0.05 and abs(spot['lon'] - lon) < 0.05
@@ -180,6 +184,7 @@ async def find_best_stargazing_spots(
                 'place_id': None,
                 'pollution_score': pollution,
                 'cloud_cover': cloud,
+                'tree_density_score': tree_density,
                 'stargazing_score': combined_score
             })
 

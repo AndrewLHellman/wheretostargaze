@@ -14,6 +14,8 @@ export interface RecommendedSpot {
   lat: number
   lon: number
   pollution_score: number
+  tree_density_score?: number
+  cloud_cover?: number
   place_type: string
   rating?: number
   address?: string
