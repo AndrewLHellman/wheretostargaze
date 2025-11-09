@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Tooltip, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import LucideMarker from './LucideMarker'
 import { FlagTriangleRight } from 'lucide-react'
@@ -10,13 +10,14 @@ import UserMarker from '@/components/UserMarker'
 import { useUserLocation } from '@/lib/useUserLocation'
 import HeatmapLayer from './HeatmapLayer'
 import SpotInformation from '@/components/SpotInformation'
+import { useSharedUserLocation } from '@/components/UserLocationProvider'
 
 interface Props {
   data: SpotResponse | null
 }
 
 export default function MapWithWaypoints({ data }: Props) {
-  const { location: userLocation } = useUserLocation()
+  const { location: userLocation, onLocationChange } = useSharedUserLocation()
   const [selectedSpot, setSelectedSpot] = useState<RecommendedSpot | null>(null)
 
   function RecenterMap({ latlng }: { latlng: [number, number] }) {
@@ -25,6 +26,16 @@ export default function MapWithWaypoints({ data }: Props) {
       if (!latlng) return
       map.flyTo(latlng, map.getZoom())
     }, [latlng && latlng.join(',')])
+    return null
+  }
+
+  function ClickHandler() {
+    useMapEvents({
+      contextmenu(e) {
+        onLocationChange({ lat: e.latlng.lat, lng: e.latlng.lng })
+      },
+    })
+
     return null
   }
 
@@ -71,14 +82,10 @@ export default function MapWithWaypoints({ data }: Props) {
             </Tooltip>
           </LucideMarker>
         ))}
+        <ClickHandler />
       </MapContainer>
 
-      {selectedSpot && (
-      <SpotInformation 
-        spot={selectedSpot} 
-        onClose={() => setSelectedSpot(null)} 
-      />
-      )}
+      {selectedSpot && <SpotInformation spot={selectedSpot} onClose={() => setSelectedSpot(null)} />}
     </div>
   )
 }
