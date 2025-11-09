@@ -114,7 +114,7 @@ export default function SpotInformation({ spot, onClose }: SpotInformationProps)
           <p className="text-xs text-gray-400 mb-1">Cloud Coverage</p>
           <p className="text-2xl font-bold text-blue-400">
             {spot.cloud_cover !== undefined && spot.cloud_cover !== null 
-              ? `${(spot.cloud_cover * 100).toFixed(0)}%` 
+              ? `${(spot.cloud_cover).toFixed(0)}%` 
               : 'N/A'}
           </p>
           <p className="text-xs text-gray-400 mt-1">
