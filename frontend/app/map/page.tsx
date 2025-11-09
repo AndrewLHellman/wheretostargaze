@@ -10,6 +10,8 @@ import { useState, useEffect } from 'react';
 import { SpotResponse } from '@/lib/types';
 
 const MapWithWaypoints = dynamic(() => import('./MapWithWaypoints'), { ssr: false });
+// ⬇️ your new components (you said you named them like this)
+import NewSpotForm from '@/components/NewSpotForm'
 
 const HEADER_H = 56;
 
@@ -59,6 +61,7 @@ export default function MapPage() {
           <aside className="w-80 h-full flex-none bg-gray-900 text-white border-r border-gray-800 p-3 flex flex-col z-[30]">
             <SettingsMenu sidebar onResponse={setData} />
             <div className="mt-auto space-y-2">
+              <NewSpotForm />
               <Tonight />
               {/* <CalendarPopup /> */}
             </div>

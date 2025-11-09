@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from models.schemas import HeatmapPoint, SpotRequest, SpotResponse, RecommendedSpot
 from services.isochrone import get_search_area, generate_grid_points, polygon_to_geojson
 from services.light_pollution import (
@@ -18,6 +19,11 @@ import logging
 import asyncio
 from datetime import datetime
 from services.tree_density import load_tree_density_data, get_tree_density_scores_batch
+from tinydb import TinyDB, Query
+
+# Create (or open) a database file
+db = TinyDB('map_data.json')
+locations = db.table('locations')
 
 logging.basicConfig(
     level=logging.INFO,
@@ -192,3 +198,18 @@ async def debug_test_location(lat: float = 38.9634, lon: float = -92.3293):
             "error": str(e),
             "traceback": traceback.format_exc()
         }
+
+class CustomSpotBody(BaseModel):
+    lat: float
+    lon: float
+    name: str
+
+@app.post("/api/spots/custom")
+async def add_custom_spot(body: CustomSpotBody):
+    locations.insert({
+        'name': body.name,
+        'lat': body.lat,
+        'lon': body.lon
+    })
+    return locations.all()
+
