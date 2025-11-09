@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Theme } from '@radix-ui/themes'
+import { UserLocationProvider } from '@/components/UserLocationProvider'
 // import '@radix-ui/themes/styles.css'
 
 const geistSans = Geist({
