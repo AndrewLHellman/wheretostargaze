@@ -1,7 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from models.schemas import HeatmapPoint, SpotRequest, SpotResponse, RecommendedSpot
+from shapely.geometry import Point
+from models.schemas import CustomSpot, HeatmapPoint, SpotRequest, SpotResponse, RecommendedSpot
 from services.isochrone import get_search_area, generate_grid_points, polygon_to_geojson
 from services.light_pollution import (
     get_light_pollution_score,
@@ -63,6 +64,14 @@ async def get_stargazing_spots(request: SpotRequest):
             request.drive_time_minutes,
             request.radius_miles
         )
+        custom_spots = locations.all() # type: ignore
+        print(custom_spots)
+        spots_in_polygon = [
+            spot for spot in custom_spots
+            if polygon.contains(Point(spot['lon'], spot['lat']))
+        ]
+        print(spots_in_polygon)
+
 
         grid_points = generate_grid_points(polygon, spacing_miles=2.0)
 
@@ -110,7 +119,25 @@ async def get_stargazing_spots(request: SpotRequest):
             )
             for spot in best_spots
         ]
+        for spot in spots_in_polygon:
+            recommended_spots.append(RecommendedSpot(
+                name=spot['name'],
+                lat=spot['lat'],
+                lon=spot['lon'],
+                pollution_score=0,
+                cloud_cover=0,
+                tree_density_score=0,
+                stargazing_score=0,
+                place_type='custom_spot',
+                rating=None,
+                address='N/A',
+                google_place_id='N/A'
 
+            ))
+
+        print(polygon)
+        print(custom_spots)
+        print(spots_in_polygon)
         return SpotResponse(
             heatmap=heatmap,
             recommended_spots=recommended_spots,
@@ -202,7 +229,7 @@ async def debug_test_location(lat: float = 38.9634, lon: float = -92.3293):
 class CustomSpotBody(BaseModel):
     lat: float
     lon: float
-    name: float
+    name: str
 
 @app.post("/api/spots/custom")
 async def add_custom_spot(body: CustomSpotBody):
@@ -211,4 +238,9 @@ async def add_custom_spot(body: CustomSpotBody):
         'lat': body.lat,
         'lon': body.lon
     })
-    return locations
+    return locations.all()
+
+# debug delete
+@app.delete("/api/spots/custom")
+async def delete_custom_spots():
+    locations.remove()

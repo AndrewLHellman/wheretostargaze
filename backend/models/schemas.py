@@ -32,3 +32,8 @@ class SpotResponse(BaseModel):
     heatmap: List[HeatmapPoint]
     recommended_spots: List[RecommendedSpot]
     search_area: Optional[dict] = None
+
+class CustomSpot(BaseModel):
+    lat: float
+    lon: float
+    name: str
