@@ -73,6 +73,18 @@ files = [
 ]
 
 [[package]]
+name = "boto"
+version = "2.49.0"
+description = "Amazon Web Services Library"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "boto-2.49.0-py2.py3-none-any.whl", hash = "sha256:147758d41ae7240dc989f0039f27da8ca0d53734be0eb869ef16e3adcfa462e8"},
+    {file = "boto-2.49.0.tar.gz", hash = "sha256:ea0d3b40a2d852767be77ca343b58a9e3a4b00d9db440efb8da74b4e58025e5a"},
+]
+
+[[package]]
 name = "certifi"
 version = "2025.10.5"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -1464,4 +1476,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12"
-content-hash = "96670c092260bbe2ecc43359b5b81123a93759c8839241ddc0322a5985623202"
+content-hash = "2fce396480ebe40670b6a60b723cf20a74897d1a62126f2d6a922c12e45744d8"
