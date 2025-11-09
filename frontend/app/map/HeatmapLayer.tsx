@@ -33,19 +33,27 @@ function interpolateIntensity(lat: number, lon: number, points: HeatmapPoint[], 
 
 /** Map normalized value [0,1] to RGBA array */
 function getColorFromGradient(value: number, gradient: Record<number, string>, opacity: number): number[] {
-  const stops = Object.keys(gradient).map(Number).sort((a,b)=>a-b)
-  if (value === 0) return [0,0,0,0]
-  if (value <= stops[0]) return [...gradient[stops[0]].split(',').map(Number).slice(0,3), 255*opacity]
-  if (value >= stops[stops.length-1]) return [...gradient[stops[stops.length-1]].split(',').map(Number).slice(0,3), 255*opacity]
-  let lo = stops[0], hi = stops[stops.length-1]
-  for (let i=0;i<stops.length-1;i++){
-    if (value >= stops[i] && value <= stops[i+1]) { lo = stops[i]; hi = stops[i+1]; break }
+  const stops = Object.keys(gradient)
+    .map(Number)
+    .sort((a, b) => a - b)
+  if (value === 0) return [0, 0, 0, 0]
+  if (value <= stops[0]) return [...gradient[stops[0]].split(',').map(Number).slice(0, 3), 255 * opacity]
+  if (value >= stops[stops.length - 1])
+    return [...gradient[stops[stops.length - 1]].split(',').map(Number).slice(0, 3), 255 * opacity]
+  let lo = stops[0],
+    hi = stops[stops.length - 1]
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (value >= stops[i] && value <= stops[i + 1]) {
+      lo = stops[i]
+      hi = stops[i + 1]
+      break
+    }
   }
   const t = (value - lo) / (hi - lo)
-  const ca = gradient[lo].split(',').map(Number).slice(0,3)
-  const cb = gradient[hi].split(',').map(Number).slice(0,3)
-  const out = ca.map((c,i)=> c + (cb[i]-c)*t)
-  return [...out, 255*opacity]
+  const ca = gradient[lo].split(',').map(Number).slice(0, 3)
+  const cb = gradient[hi].split(',').map(Number).slice(0, 3)
+  const out = ca.map((c, i) => c + (cb[i] - c) * t)
+  return [...out, 255 * opacity]
 }
 
 export default function HeatmapLayer({
@@ -69,12 +77,12 @@ export default function HeatmapLayer({
     // Ensure a pane above base tiles
     if (!map.getPane('heatmap')) {
       const pane = map.createPane('heatmap')
-      pane.style.zIndex = '650'
+      pane.style.zIndex = '400'
       pane.style.pointerEvents = 'none'
     }
 
     const HeatGrid = (L.GridLayer as any).extend({
-      createTile: function (coords: any, done: (err: any, tile?: HTMLCanvasElement)=>void) {
+      createTile: function (coords: any, done: (err: any, tile?: HTMLCanvasElement) => void) {
         const tile = document.createElement('canvas')
         const size = this.getTileSize()
         tile.width = size.x
@@ -107,10 +115,10 @@ export default function HeatmapLayer({
             for (let dy = 0; dy < step && y + dy < size.y; dy++) {
               for (let dx = 0; dx < step && x + dx < size.x; dx++) {
                 const idx = ((y + dy) * size.x + (x + dx)) * 4
-                data[idx]   = color[0]
-                data[idx+1] = color[1]
-                data[idx+2] = color[2]
-                data[idx+3] = color[3]
+                data[idx] = color[0]
+                data[idx + 1] = color[1]
+                data[idx + 2] = color[2]
+                data[idx + 3] = color[3]
               }
             }
           }
@@ -131,7 +139,9 @@ export default function HeatmapLayer({
 
     const layer = new HeatGrid({ pane: 'heatmap', tileSize: 256, opacity: 1 })
     layer.addTo(map)
-    if (layer.setZIndex) layer.setZIndex(650)
+    // if (layer.setZIndex) {
+    //   layer.setZIndex(-100000)
+    // } else console.error('No layer set z index')
 
     // When GridLayer finishes current batch
     const onLoad = () => window.dispatchEvent(new CustomEvent('heatmap:ready'))
