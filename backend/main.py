@@ -23,7 +23,7 @@ from services.tree_density import load_tree_density_data, get_tree_density_score
 from tinydb import TinyDB, Query
 
 # Create (or open) a database file
-db = TinyDB('map_data.json')
+db = TinyDB('spots.json')
 locations = db.table('locations')
 
 logging.basicConfig(
