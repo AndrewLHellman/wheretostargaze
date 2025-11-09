@@ -65,13 +65,13 @@ export default function HeatmapLayer({
   points,
   maxDistance = 0.02,
   blur = 15,
-  opacity = 0.4,
+  opacity = 0.3,
   gradient = {
-    0: '0,0,255',
-    0.25: '0,255,0',
-    0.5: '255,255,0',
-    0.75: '255,128,0',
-    1: '255,0,0',
+    0: '255,0,0', // red
+    0.4: '255,80,0', // reddish-orange
+    0.6: '255,180,0', // orange-yellow
+    0.8: '200,255,0', // yellow-green
+    1: '0,255,0', // green
   },
 }: LeafletHeatOverlayProps) {
   const map = useMap()
