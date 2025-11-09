@@ -124,6 +124,23 @@ export default function SpotInformation({ spot, onClose }: SpotInformationProps)
           </p>
         </div>
 
+        {/* Overall Stargazing Score */}
+        <div className="mt-4 p-4 bg-gradient-to-br from-purple-900/50 to-indigo-900/50 rounded-lg border-2 border-purple-400/40 shadow-lg">
+          <p className="text-xs text-gray-300 mb-1 font-semibold">Overall Stargazing Score</p>
+          <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+            {spot.stargazing_score.toFixed(3)}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            {spot.stargazing_score >= 0.8 ? '⭐ Excellent' : 
+             spot.stargazing_score >= 0.6 ? '✨ Very Good' : 
+             spot.stargazing_score >= 0.4 ? '🌟 Good' : 
+             spot.stargazing_score >= 0.2 ? '☁️ Fair' : '🌫️ Poor'}
+          </p>
+          <p className="text-[10px] text-gray-500 mt-2">
+            Based on light pollution, clouds, and tree cover
+          </p>
+        </div>
+
         {/* Coordinates */}
         <div className="mt-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
           <p className="text-xs text-gray-400 mb-1">Coordinates</p>

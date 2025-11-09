@@ -36,17 +36,33 @@ def is_stargazing_friendly(place_name: str, place_type: str) -> bool:
 def calculate_stargazing_score(
     pollution_score: float,
     cloud_cover: Optional[float],
-    pollution_weight: float = 0.7,
-    cloud_weight: float = 0.3
+    tree_density: Optional[float] = None,
+    pollution_weight: float = 0.6,
+    cloud_weight: float = 0.3,
+    tree_weight: float = 0.1
 ) -> float:
+
+    # Convert pollution to quality (invert: low pollution = high quality)
     pollution_quality = 1.0 - pollution_score
 
+    # Convert cloud cover to quality
     if cloud_cover is not None:
         cloud_quality = 1.0 - (cloud_cover / 100.0)
     else:
-        cloud_quality = 0.5
+        cloud_quality = 0.5  # Neutral if unknown
 
-    combined_score = (pollution_quality * pollution_weight) + (cloud_quality * cloud_weight)
+    # Convert tree density to quality (low density = high quality for stargazing)
+    if tree_density is not None:
+        tree_quality = 1.0 - tree_density
+    else:
+        tree_quality = 0.0  # Assume no tree coverage
+
+    # Weighted combination
+    combined_score = (
+        (pollution_quality * pollution_weight) + 
+        (cloud_quality * cloud_weight) +
+        (tree_quality * tree_weight)
+    )
 
     return combined_score
 
@@ -105,8 +121,9 @@ async def find_best_stargazing_spots(
     cloud_covers: Optional[List[Optional[float]]] = None,
     tree_density_scores: Optional[List[float]] = None,
     max_spots: int = 10,
-    pollution_weight: float = 0.7,
-    cloud_weight: float = 0.3
+    pollution_weight: float = 0.5,
+    cloud_weight: float = 0.25,
+    tree_weight: float = 0.25
 ) -> List[dict]:
     if cloud_covers is None:
         cloud_covers = [None] * len(grid_points)
@@ -117,10 +134,12 @@ async def find_best_stargazing_spots(
         calculate_stargazing_score(
             pollution,
             cloud,
+            tree_density,
             pollution_weight,
-            cloud_weight
+            cloud_weight,
+            tree_weight
         )
-        for pollution, cloud in zip(pollution_scores, cloud_covers)
+        for pollution, cloud, tree_density in zip(pollution_scores, cloud_covers, tree_density_scores)
     ]
 
     sorted_points = sorted(
