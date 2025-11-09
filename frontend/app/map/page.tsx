@@ -9,6 +9,7 @@ import { SpotResponse } from '@/lib/types'
 import Tonight from '@/components/Tonight'
 import CalendarPopup from '@/components/CalendarPopup'
 import { UserLocationProvider } from '@/components/UserLocationProvider'
+import NewSpotForm from '@/components/NewSpotForm'
 
 // Dynamically import the actual Map component (client only)
 const MapWithWaypoints = dynamic(() => import('./MapWithWaypoints'), { ssr: false })
@@ -25,6 +26,7 @@ export default function App() {
 
           {/* Bottom section: Tonight strip + Calendar button */}
           <div className='mt-auto space-y-2'>
+            <NewSpotForm />
             <Tonight />
             <CalendarPopup />
           </div>
