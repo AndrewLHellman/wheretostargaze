@@ -30,7 +30,7 @@ const DEFAULT_PREFS: MapPrefs = {
 
 interface SettingsMenuProps {
   sidebar?: boolean
-  onResponse: (data: SpotResponse) => void
+  onResponse: (data: SpotResponse | null) => void
 }
 
 export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMenuProps) {
@@ -72,6 +72,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
 
   function resetDefaults() {
     save(DEFAULT_PREFS)
+    onResponse(null)
   }
 
   /** Wait only for the heatmap tiles to finish (HeatmapLayer dispatches `heatmap:ready`). */
@@ -98,7 +99,13 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
         body: JSON.stringify({
           latitude: userLocation?.lat,
           longitude: userLocation?.lng,
-          radius_miles: prefs.travelDistance,
+          ...(prefs.searchType === 'distance'
+            ? {
+                radius_miles: prefs.travelDistance,
+              }
+            : {
+                drive_time_minutes: prefs.driveTime,
+              }),
           // searchType: prefs.searchType,
           // driveTime: prefs.driveTime,
         }),
@@ -121,7 +128,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
     'px-3 py-2 rounded text-sm font-medium transition-all ' +
     'hover:brightness-110 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-purple-500/60'
 
-  const segOn  = 'bg-purple-600 text-white'
+  const segOn = 'bg-purple-600 text-white'
   const segOff = 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
 
   const containerBase = sidebar
@@ -135,8 +142,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
           aria-label='Open preferences'
           onClick={() => setOpen(v => !v)}
           className={
-            btnBase +
-            ' bg-white/90 dark:bg-black/80 border border-gray-200 text-gray-800 dark:text-gray-100 p-2 rounded-lg'
+            btnBase + ' bg-white/90 dark:bg-black/80 border border-gray-200 text-gray-800 dark:text-gray-100 p-2 rounded-lg'
           }
         >
           {/* gear icon */}
@@ -189,14 +195,18 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
             </div>
             <div className='flex gap-2 items-center mt-2'>
               <button
-                className={`${btnBase} px-2 py-1 ${prefs.units === 'mi' ? 'bg-purple-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-300'}`}
+                className={`${btnBase} px-2 py-1 ${
+                  prefs.units === 'mi' ? 'bg-purple-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-300'
+                }`}
                 onClick={() => save({ ...prefs, units: 'mi' })}
                 disabled={prefs.searchType !== 'distance'}
               >
                 miles
               </button>
               <button
-                className={`${btnBase} px-2 py-1 ${prefs.units === 'km' ? 'bg-purple-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-300'}`}
+                className={`${btnBase} px-2 py-1 ${
+                  prefs.units === 'km' ? 'bg-purple-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-300'
+                }`}
                 onClick={() => save({ ...prefs, units: 'km' })}
                 disabled={prefs.searchType !== 'distance'}
               >
@@ -267,9 +277,7 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
               className={
                 btnBase +
                 ' ' +
-                (loading
-                  ? 'bg-purple-600/80 text-white cursor-wait'
-                  : 'bg-gray-800 text-gray-100 hover:bg-gray-700') +
+                (loading ? 'bg-purple-600/80 text-white cursor-wait' : 'bg-gray-800 text-gray-100 hover:bg-gray-700') +
                 ' min-w-24 flex items-center justify-center gap-2'
               }
             >
@@ -307,9 +315,9 @@ export default function SettingsMenu({ sidebar = false, onResponse }: SettingsMe
 /** tiny loading spinner */
 function Spinner() {
   return (
-    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-      <path className="opacity-75" d="M4 12a8 8 0 0 1 8-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    <svg className='animate-spin h-4 w-4 text-white' viewBox='0 0 24 24' fill='none'>
+      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='3' />
+      <path className='opacity-75' d='M4 12a8 8 0 0 1 8-8' stroke='currentColor' strokeWidth='3' strokeLinecap='round' />
     </svg>
   )
 }
