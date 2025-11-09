@@ -46,7 +46,7 @@ def load_light_pollution_data():
 
 
 @cache_response(ttl_seconds=31536000, prefix="light_pollution")
-async def get_light_pollution_score(lat: float, lon: float) -> float:
+async def _get_light_pollution_score_cached(lat: float, lon: float) -> float:
     """
     Get light pollution score (0-1) for a location.
 
@@ -104,6 +104,17 @@ async def get_light_pollution_score(lat: float, lon: float) -> float:
     # Fallback to distance-based model
     return await _get_distance_based_score(lat, lon)
 
+async def get_light_pollution_score(lat: float, lon: float) -> float:
+    lat_rounded = round(lat, 2)
+    lon_rounded = round(lon, 2)
+
+    if np.random.random() < 0.01:  # 1% of requests
+        logger.debug(
+            f"Coordinate rounding: ({lat:.5f}, {lon:.5f}) → "
+            f"({lat_rounded:.2f}, {lon_rounded:.2f})"
+        )
+
+    return await _get_light_pollution_score_cached(lat_rounded, lon_rounded)
 
 async def _get_distance_based_score(lat: float, lon: float) -> float:
     """

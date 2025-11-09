@@ -7,7 +7,7 @@ from cache import cache_response
 logger = logging.getLogger(__name__)
 
 @cache_response(ttl_seconds=1800, prefix="cloud_cover")
-async def get_cloud_cover(lat: float, lon: float) -> Optional[float]:
+async def _get_cloud_cover_cached(lat: float, lon: float) -> Optional[float]:
     if not hasattr(settings, 'openweather_api_key') or not settings.openweather_api_key:
         logger.warning("OpenWeather API key not configured")
         return None
@@ -31,6 +31,18 @@ async def get_cloud_cover(lat: float, lon: float) -> Optional[float]:
     except Exception as e:
         logger.error(f"Error fetching cloud cover: {e}")
         return None
+
+async def get_cloud_cover(lat: float, lon: float) -> Optional[float]:
+    lat_rounded = round(lat, 1)
+    lon_rounded = round(lon, 1)
+
+    if lat != lat_rounded or lon != lon_rounded:
+        logger.debug(
+            f"Cloud cover rounding: ({lat:.5f}, {lon:.5f}) → "
+            f"({lat_rounded:.1f}, {lon_rounded:.1f})"
+        )
+
+    return await _get_cloud_cover_cached(lat_rounded, lon_rounded)
 
 def get_cloud_quality_score(cloud_cover: Optional[float]) -> float:
     if cloud_cover is None:
