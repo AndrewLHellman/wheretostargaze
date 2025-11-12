@@ -66,7 +66,7 @@ async def get_stargazing_spots(request: SpotRequest):
             request.radius_miles
         )
 
-        grid_points = generate_grid_points(polygon, spacing_miles=2.0)
+        grid_points = generate_grid_points(polygon)
 
         pollution_tasks = [
             get_light_pollution_score(lat, lon)
@@ -131,7 +131,7 @@ async def get_stargazing_spots(request: SpotRequest):
             )
             for spot in best_spots
         ]
-        
+
         custom_spots = locations.all() # type: ignore
         spots_in_polygon = [
             spot for spot in custom_spots
