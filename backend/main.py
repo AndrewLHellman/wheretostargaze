@@ -93,7 +93,16 @@ async def startup_event():
 @app.post("/api/spots", response_model=SpotResponse)
 async def get_stargazing_spots(request: SpotRequest):
     try:
-        logger.info(f"Processing request for lat={request.latitude}, lon={request.longitude}")
+        logger.info(
+            f"Full request details - "
+            f"latitude={request.latitude}, "
+            f"longitude={request.longitude}, "
+            f"drive_time_minutes={request.drive_time_minutes}, "
+            f"radius_miles={request.radius_miles}, "
+            f"pollution_weight={request.pollution_weight}, "
+            f"cloud_weight={request.cloud_weight}, "
+            f"tree_weight={request.tree_weight}"
+        )
 
         polygon = await get_search_area(
             request.latitude,
