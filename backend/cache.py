@@ -5,8 +5,61 @@ from functools import wraps
 from typing import Optional, Callable, Any
 from config import settings
 import hashlib
+from datetime import datetime
+from collections import defaultdict
+import threading
 
 logger = logging.getLogger(__name__)
+
+# Cache statistics tracking
+class CacheStats:
+    def __init__(self):
+        self.hits = 0
+        self.misses = 0
+        self.errors = 0
+        self.start_time = datetime.now()
+        self.by_function = defaultdict(lambda: {"hits": 0, "misses": 0})
+        self._lock = threading.Lock()
+
+    def record_hit(self, func_name: str):
+        with self._lock:
+            self.hits += 1
+            self.by_function[func_name]["hits"] += 1
+
+    def record_miss(self, func_name: str):
+        with self._lock:
+            self.misses += 1
+            self.by_function[func_name]["misses"] += 1
+
+    def record_error(self):
+        with self._lock:
+            self.errors += 1
+
+    def get_stats(self) -> dict:
+        with self._lock:
+            total_requests = self.hits + self.misses
+            hit_rate = (self.hits / total_requests * 100) if total_requests > 0 else 0
+            uptime = (datetime.now() - self.start_time).total_seconds()
+
+            return {
+                "total_requests": total_requests,
+                "hits": self.hits,
+                "misses": self.misses,
+                "errors": self.errors,
+                "hit_rate_percent": round(hit_rate, 2),
+                "uptime_seconds": round(uptime, 2),
+                "by_function": dict(self.by_function)
+            }
+
+    def reset(self):
+        with self._lock:
+            self.hits = 0
+            self.misses = 0
+            self.errors = 0
+            self.start_time = datetime.now()
+            self.by_function.clear()
+
+cache_stats = CacheStats()
 
 # Initialize Redis client
 try:
@@ -60,11 +113,13 @@ def cache_response(ttl_seconds: int = 3600, prefix: str = "cache"):
                 # Try to get from cache
                 cached = redis_client.get(cache_key)
                 if cached:
-                    logger.info(f"✓ Cache hit: {cache_key}")
+                    logger.debug(f"✓ Cache hit: {cache_key}")
+                    cache_stats.record_hit(func.__name__)
                     return json.loads(cached)
 
                 # Cache miss - call function
-                logger.info(f"✗ Cache miss: {cache_key}")
+                logger.debug(f"✗ Cache miss: {cache_key}")
+                cache_stats.record_miss(func.__name__)
                 result = await func(*args, **kwargs)
 
                 # Store in cache
@@ -77,7 +132,8 @@ def cache_response(ttl_seconds: int = 3600, prefix: str = "cache"):
                 return result
 
             except Exception as e:
-                print(f"Cache error: {e}")
+                logger.error(f"Cache error: {e}")
+                cache_stats.record_error()
                 # If cache fails, still return the result
                 return await func(*args, **kwargs)
 
@@ -94,11 +150,13 @@ def cache_response(ttl_seconds: int = 3600, prefix: str = "cache"):
                 # Try to get from cache
                 cached = redis_client.get(cache_key)
                 if cached:
-                    logger.info(f"✓ Cache hit: {cache_key}")
+                    logger.debug(f"✓ Cache hit: {cache_key}")
+                    cache_stats.record_hit(func.__name__)
                     return json.loads(cached)
 
                 # Cache miss - call function
-                logger.info(f"✗ Cache miss: {cache_key}")
+                logger.debug(f"✗ Cache miss: {cache_key}")
+                cache_stats.record_miss(func.__name__)
                 result = func(*args, **kwargs)
 
                 # Store in cache
@@ -112,6 +170,7 @@ def cache_response(ttl_seconds: int = 3600, prefix: str = "cache"):
 
             except Exception as e:
                 logger.error(f"Cache error: {e}")
+                cache_stats.record_error()
                 return func(*args, **kwargs)
 
         # Return appropriate wrapper based on whether function is async
@@ -151,18 +210,25 @@ def invalidate_cache(pattern: str) -> int:
 
 def get_cache_stats() -> dict:
     """
-    Get Redis cache statistics.
+    Get Redis cache statistics and aggregate hit/miss metrics.
     """
+    stats = {
+        "cache_performance": cache_stats.get_stats()
+    }
+
     if redis_client is None:
-        return {"status": "disconnected"}
+        stats["redis"] = {"status": "disconnected"}
+        return stats
 
     try:
         info = redis_client.info()
-        return {
+        stats["redis"] = {
             "status": "connected",
             "used_memory": info.get("used_memory_human"),
             "connected_clients": info.get("connected_clients"),
             "total_keys": redis_client.dbsize(),
         }
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        stats["redis"] = {"status": "error", "message": str(e)}
+
+    return stats

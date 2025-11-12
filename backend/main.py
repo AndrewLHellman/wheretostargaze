@@ -22,23 +22,59 @@ from datetime import datetime
 from services.tree_density import load_tree_density_data, get_tree_density_scores_batch
 from services.conversion_utils import relative_weight
 from tinydb import TinyDB, Query
+from config import settings
+import os
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from cache import cache_stats
 
 # Create (or open) a database file
 db = TinyDB('spots.json')
 locations = db.table('locations')
 
+# Configure logging based on environment
+log_level = getattr(logging, settings.log_level.upper(), logging.INFO)
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format='%(levelname)s:     %(name)s - %(message)s'
 )
 
 logger = logging.getLogger(__name__)
+logger.info(f"Logging configured at level: {settings.log_level.upper()}")
 
 app = FastAPI(
     title="WhereToStargaze API",
     description="Find the best stargazing spots near you",
     version="1.0.0",
 )
+
+# Middleware to log cache stats periodically
+class CacheStatsMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, log_every_n_requests: int = 10):
+        super().__init__(app)
+        self.log_every_n_requests = log_every_n_requests
+        self.request_count = 0
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+
+        # Only log for API requests (not health checks or static files)
+        if request.url.path.startswith("/api/"):
+            self.request_count += 1
+
+            # Log aggregate stats every N requests
+            if self.request_count % self.log_every_n_requests == 0:
+                stats = cache_stats.get_stats()
+                logger.info(
+                    f"Cache Stats - Requests: {stats['total_requests']}, "
+                    f"Hit Rate: {stats['hit_rate_percent']}%, "
+                    f"Hits: {stats['hits']}, Misses: {stats['misses']}, "
+                    f"Errors: {stats['errors']}"
+                )
+
+        return response
+
+app.add_middleware(CacheStatsMiddleware, log_every_n_requests=10)
 
 app.add_middleware(
     CORSMiddleware,

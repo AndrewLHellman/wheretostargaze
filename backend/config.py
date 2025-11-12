@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     astronomy_id: Optional[str] = None
     astronomy_secret: Optional[str] = None
     tree_density_data_path: str = str(_tree_data_path)
+    log_level: str = "INFO"  # Can be: DEBUG, INFO, WARNING, ERROR, CRITICAL
     model_config = {
         "env_file": ".env"
     }

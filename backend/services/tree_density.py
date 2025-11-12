@@ -80,12 +80,12 @@ async def get_tree_density_score(lat: float, lon: float) -> float:
         xs, ys = transform('EPSG:4326', _tree_density_dataset.crs, [lon], [lat])
         x, y = xs[0], ys[0]
 
-        logger.info(f"Transformed ({lat}, {lon}) -> ({x:.2f}, {y:.2f}) in {_tree_density_dataset.crs}")
+        logger.debug(f"Transformed ({lat}, {lon}) -> ({x:.2f}, {y:.2f}) in {_tree_density_dataset.crs}")
 
         # Convert projected coordinates to raster row/col
         row, col = rowcol(_tree_density_dataset.transform, x, y)
 
-        logger.info(f"Pixel coordinates: row={row}, col={col} (bounds: 0-{_tree_density_dataset.height}, 0-{_tree_density_dataset.width})")
+        logger.debug(f"Pixel coordinates: row={row}, col={col} (bounds: 0-{_tree_density_dataset.height}, 0-{_tree_density_dataset.width})")
 
         if not (0 <= row < _tree_density_dataset.height and
                 0 <= col < _tree_density_dataset.width):
@@ -94,7 +94,7 @@ async def get_tree_density_score(lat: float, lon: float) -> float:
 
         alstk_value = _tree_density_dataset.read(1, window=((row, row+1), (col, col+1)))[0, 0]
 
-        logger.info(f"Raw ALSTK value: {alstk_value}, NoData value: {_tree_density_dataset.nodata}")
+        logger.debug(f"Raw ALSTK value: {alstk_value}, NoData value: {_tree_density_dataset.nodata}")
 
         if alstk_value == _tree_density_dataset.nodata or np.isnan(alstk_value):
             logger.debug(f"NoData at ({lat}, {lon}), assuming no forest cover (urban/water), returning 0.0")
@@ -105,7 +105,7 @@ async def get_tree_density_score(lat: float, lon: float) -> float:
         # Higher values = denser forest (worse for stargazing due to blocked sky)
         normalized = min(alstk_value / 150.0, 1.0)
 
-        logger.info(f"SUCCESS: Tree density at ({lat}, {lon}) = {normalized:.3f} (raw ALSTK={alstk_value:.2f})")
+        logger.debug(f"SUCCESS: Tree density at ({lat}, {lon}) = {normalized:.3f} (raw ALSTK={alstk_value:.2f})")
 
         return float(normalized)
 
