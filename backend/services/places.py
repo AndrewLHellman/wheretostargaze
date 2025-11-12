@@ -66,7 +66,7 @@ def calculate_stargazing_score(
 
     return combined_score
 
-@cache_response(ttl_seconds=604800, prefix="places")
+@cache_response(ttl_seconds=2592000, prefix="places")
 async def search_nearby_places(lat: float, lon: float, radius_meters: int = 5000) -> List[dict]:
     if not settings.google_places_api_key or settings.google_places_api_key == "dummy_key_for_testing":
         logger.warning("Google Places API key not configured")
