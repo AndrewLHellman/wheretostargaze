@@ -66,8 +66,17 @@ def calculate_stargazing_score(
 
     return combined_score
 
-@cache_response(ttl_seconds=2592000, prefix="places")
 async def search_nearby_places(lat: float, lon: float, radius_meters: int = 5000) -> List[dict]:
+    # Snap to coarse grid - places don't change that much over ~7 miles
+    lat_rounded = round(lat, 1)
+    lon_rounded = round(lon, 1)
+
+    # Use rounded coords in cache key (already done by @cache_response)
+    # and in actual API request
+    return await _search_nearby_places_impl(lat_rounded, lon_rounded, radius_meters)
+
+@cache_response(ttl_seconds=2592000, prefix="places")
+async def _search_nearby_places_impl(lat: float, lon: float, radius_meters: int = 5000) -> List[dict]:
     if not settings.google_places_api_key or settings.google_places_api_key == "dummy_key_for_testing":
         logger.warning("Google Places API key not configured")
         return []
