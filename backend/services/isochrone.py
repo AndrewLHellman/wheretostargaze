@@ -104,7 +104,7 @@ def generate_grid_points(polygon: Polygon, grid_spacing_degrees: float = GLOBAL_
 
             point = Point(snapped_lon, snapped_lat)
             if polygon.contains(point) or polygon.boundary.distance(point) < grid_spacing_degrees * 0.1:
-                points.append((lat, lon))
+                points.append((snapped_lat, snapped_lon))
             lon += grid_spacing_degrees
         lat += grid_spacing_degrees
 
