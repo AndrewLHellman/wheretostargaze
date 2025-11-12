@@ -76,7 +76,7 @@ async def search_nearby_places(lat: float, lon: float, radius_meters: int = 5000
 
     places = []
 
-    place_types = ['park', 'campground', 'point_of_interest']
+    place_types = ['park', 'campground']
 
     for place_type in place_types:
         params = {
