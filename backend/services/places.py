@@ -152,7 +152,7 @@ async def find_best_stargazing_spots(
 
     priority_types = ['campground', 'park', 'point_of_interest']
 
-    for (lat, lon), pollution, cloud, tree_density, combined_score in sorted_points[:50]:
+    for (lat, lon), pollution, cloud, tree_density, combined_score in sorted_points[:5]:
         places = await search_nearby_places(lat, lon, radius_meters=5000)
 
         def place_priority(place):
