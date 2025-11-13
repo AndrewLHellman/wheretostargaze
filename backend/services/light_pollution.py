@@ -14,7 +14,7 @@ _light_pollution_dataset = None
 _dataset_stats = None
 
 def load_light_pollution_data():
-    global _light_pollution_dataset
+    global _light_pollution_dataset, _dataset_stats
 
     data_path = settings.light_pollution_data_path
 
@@ -33,6 +33,15 @@ def load_light_pollution_data():
         else:
             _light_pollution_dataset = rasterio.open(data_path)
 
+        _dataset_stats = {
+            'path': data_path,
+            'size': f"{_light_pollution_dataset.width}x{_light_pollution_dataset.height}",
+            'crs': str(_light_pollution_dataset.crs),
+            'bounds': _light_pollution_dataset.bounds,
+            'nodata': _light_pollution_dataset.nodata,
+            'dtype': _light_pollution_dataset.dtypes[0]
+        }
+
         logger.info(f"✓ Light pollution data loaded successfully")
         logger.info(f"  Source: {data_path}")
 
@@ -43,6 +52,14 @@ def load_light_pollution_data():
         import traceback
         traceback.print_exc()
         return None
+
+def close_light_pollution_data():
+    """Close the light pollution dataset to free resources"""
+    global _light_pollution_dataset
+    if _light_pollution_dataset is not None:
+        _light_pollution_dataset.close()
+        _light_pollution_dataset = None
+        logger.info("Light pollution dataset closed")
 
 
 @cache_response(ttl_seconds=31536000, prefix="light_pollution")

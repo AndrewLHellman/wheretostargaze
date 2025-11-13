@@ -60,6 +60,14 @@ def load_tree_density_data():
         logger.info("Tree density features will be disabled. The app will still work normally.")
         return None
 
+def close_tree_density_data():
+    """Close the tree density dataset to free resources"""
+    global _tree_density_dataset
+    if _tree_density_dataset is not None:
+        _tree_density_dataset.close()
+        _tree_density_dataset = None
+        logger.info("Tree density dataset closed")
+
 @cache_response(ttl_seconds=31536000, prefix="tree_density")
 async def get_tree_density_score(lat: float, lon: float) -> float:
     """

@@ -1,3 +1,8 @@
+import os
+# CRITICAL: Set GDAL cache limit BEFORE any rasterio imports
+# This prevents memory leaks from GDAL's internal caching on low-memory servers
+os.environ.setdefault('GDAL_CACHEMAX', '64')  # 64 MB max cache
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -8,6 +13,7 @@ from services.light_pollution import (
     get_light_pollution_score,
     get_quality_description,
     load_light_pollution_data,
+    close_light_pollution_data,
     get_dataset_info
 )
 from services.places import calculate_stargazing_score, find_best_stargazing_spots
@@ -19,7 +25,7 @@ import traceback
 import logging
 import asyncio
 from datetime import datetime
-from services.tree_density import load_tree_density_data, get_tree_density_scores_batch
+from services.tree_density import load_tree_density_data, close_tree_density_data, get_tree_density_scores_batch
 from services.conversion_utils import relative_weight
 from tinydb import TinyDB, Query
 from config import settings
@@ -94,6 +100,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                         logger.info(f"Request Body: {json.dumps(body_json, indent=2)}")
                     except json.JSONDecodeError:
                         logger.info(f"Request Body (raw): {body.decode()}")
+                    finally:
+                        # Help garbage collector by clearing references
+                        body_json = None
 
                 # IMPORTANT: Create a new request with the body for downstream processing
                 async def receive():
@@ -123,6 +132,14 @@ async def startup_event():
     load_light_pollution_data()
     logger.info("Loading tree density data...")
     load_tree_density_data()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    logger.info("Shutting down and cleaning up resources...")
+    close_light_pollution_data()
+    close_tree_density_data()
+    db.close()
+    logger.info("All resources closed successfully")
 
 @app.post("/api/spots", response_model=SpotResponse)
 async def get_stargazing_spots(request: SpotRequest):

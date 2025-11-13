@@ -6,7 +6,6 @@ from typing import Optional, Callable, Any
 from config import settings
 import hashlib
 from datetime import datetime
-from collections import defaultdict
 import threading
 
 logger = logging.getLogger(__name__)
@@ -18,17 +17,23 @@ class CacheStats:
         self.misses = 0
         self.errors = 0
         self.start_time = datetime.now()
-        self.by_function = defaultdict(lambda: {"hits": 0, "misses": 0})
+        self.by_function = {}
         self._lock = threading.Lock()
 
     def record_hit(self, func_name: str):
         with self._lock:
             self.hits += 1
+            # Initialize function stats if not present (prevents unbounded growth)
+            if func_name not in self.by_function:
+                self.by_function[func_name] = {"hits": 0, "misses": 0}
             self.by_function[func_name]["hits"] += 1
 
     def record_miss(self, func_name: str):
         with self._lock:
             self.misses += 1
+            # Initialize function stats if not present (prevents unbounded growth)
+            if func_name not in self.by_function:
+                self.by_function[func_name] = {"hits": 0, "misses": 0}
             self.by_function[func_name]["misses"] += 1
 
     def record_error(self):
