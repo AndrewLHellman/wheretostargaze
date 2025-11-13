@@ -75,8 +75,8 @@ async def search_nearby_places(lat: float, lon: float, radius_meters: int = 5000
     # and in actual API request
     return await _search_nearby_places_impl(lat_rounded, lon_rounded, radius_meters)
 
-@cache_response(ttl_seconds=2592000, prefix="places")
-async def _search_nearby_places_impl(lat: float, lon: float, radius_meters: int = 5000) -> List[dict]:
+@cache_response(ttl_seconds=31536000, prefix="places")
+async def _search_nearby_places_impl(lat: float, lon: float, radius_meters: int = 8000) -> List[dict]:
     if not settings.google_places_api_key or settings.google_places_api_key == "dummy_key_for_testing":
         logger.warning("Google Places API key not configured")
         return []
@@ -178,7 +178,7 @@ async def find_best_stargazing_spots(
     priority_types = ['campground', 'park', 'point_of_interest']
 
     for (lat, lon), pollution, cloud, tree_density, combined_score in sorted_points[:10]:
-        places = await search_nearby_places(lat, lon, radius_meters=5000)
+        places = await search_nearby_places(lat, lon, radius_meters=8000)
 
         def place_priority(place):
             try:
