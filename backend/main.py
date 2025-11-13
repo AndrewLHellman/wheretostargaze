@@ -230,7 +230,7 @@ async def health():
     return {"status": "healthy"}
 
 @app.get("/cache/stats")
-async def cache_stats():
+async def get_cache_stats_endpoint():
     return get_cache_stats()
 
 @app.get("/api/astronomy")
