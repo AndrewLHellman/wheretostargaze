@@ -81,45 +81,61 @@ async def _search_nearby_places_impl(lat: float, lon: float, radius_meters: int 
         logger.warning("Google Places API key not configured")
         return []
 
-    url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+    url = "https://places.googleapis.com/v1/places:searchNearby"
 
+    field_mask = "places.displayName,places.location,places.types,places.formattedAddress,places.id"
+
+    headers = {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': settings.google_places_api_key,
+        'X-Goog-FieldMask': field_mask  # THIS IS THE KEY TO COST SAVINGS
+    }
+
+    body = {
+        "includedTypes": ['campground', 'park'],
+        "maxResultCount": 20,
+        "locationRestriction": {
+            "circle": {
+                "center": {
+                    "latitude": lat,
+                    "longitude": lon
+                },
+                "radius": radius_meters
+            }
+        }
+    }
     places = []
 
-    place_types = ['park', 'campground']
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json=body, headers=headers, timeout=10.0)
+            response.raise_for_status()
+            data = response.json()
 
-    for place_type in place_types:
-        params = {
-            'location': f'{lat},{lon}',
-            'radius': radius_meters,
-            'type': place_type,
-            'key': settings.google_places_api_key
-        }
+            if data.get('places'):
+                for place in data.get('places', []):
+                    display_name = place.get('displayName', {}).get('text', '')
 
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(url, params=params, timeout=10.0)
-                response.raise_for_status()
-                data = response.json()
+                    types = place.get('types', [])
+                    place_type = 'park' if 'park' in types else ('campground' if 'campground' in types else 'point_of_interest')
 
-                if data.get('status') == 'OK':
-                    for place in data.get('results', [])[:10]:
-                        place_name = place.get('name', '')
+                    if not is_stargazing_friendly(display_name, place_type):
+                        continue
 
-                        if not is_stargazing_friendly(place_name, place_type):
-                            continue
+                    location = place.get('location', {})
 
-                        places.append({
-                            'name': place_name,
-                            'lat': place['geometry']['location']['lat'],
-                            'lon': place['geometry']['location']['lng'],
-                            'place_type': place_type,
-                            'rating': place.get('rating'),
-                            'address': place.get('vicinity'),
-                            'place_id': place.get('place_id')
-                        })
-        except Exception as e:
-            logger.error(f"Error searching for {place_type}: {e}")
-            continue
+                    places.append({
+                        'name': display_name,
+                        'lat': location.get('latitude'),
+                        'lon': location.get('longitude'),
+                        'place_type': place_type,
+                        'rating': None,  # Not requested to save money
+                        'address': place.get('formattedAddress'),
+                        'place_id': place.get('id')
+                    })
+    except Exception as e:
+        logger.error(f"Error searching for places: {e}")
+        return []
 
     return places
 
@@ -161,7 +177,7 @@ async def find_best_stargazing_spots(
 
     priority_types = ['campground', 'park', 'point_of_interest']
 
-    for (lat, lon), pollution, cloud, tree_density, combined_score in sorted_points[:5]:
+    for (lat, lon), pollution, cloud, tree_density, combined_score in sorted_points[:10]:
         places = await search_nearby_places(lat, lon, radius_meters=5000)
 
         def place_priority(place):
