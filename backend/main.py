@@ -27,6 +27,7 @@ import os
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from cache import cache_stats
+import json
 
 # Create (or open) a database file
 db = TinyDB('spots.json')
@@ -73,6 +74,39 @@ class CacheStatsMiddleware(BaseHTTPMiddleware):
                 )
 
         return response
+
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Log request details
+        logger.info(f"Request: {request.method} {request.url.path}")
+
+        # Log headers (optional)
+        logger.debug(f"Headers: {dict(request.headers)}")
+
+        # Log body for POST/PUT/PATCH requests
+        if request.method in ["POST", "PUT", "PATCH"]:
+            try:
+                body = await request.body()
+                # Decode and log the body
+                if body:
+                    try:
+                        body_json = json.loads(body.decode())
+                        logger.info(f"Request Body: {json.dumps(body_json, indent=2)}")
+                    except json.JSONDecodeError:
+                        logger.info(f"Request Body (raw): {body.decode()}")
+
+                # IMPORTANT: Create a new request with the body for downstream processing
+                async def receive():
+                    return {"type": "http.request", "body": body}
+
+                request._receive = receive
+            except Exception as e:
+                logger.error(f"Error reading request body: {e}")
+
+        response = await call_next(request)
+        return response
+
+app.add_middleware(RequestLoggingMiddleware)
 
 app.add_middleware(CacheStatsMiddleware, log_every_n_requests=10)
 
